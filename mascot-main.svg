@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <linearGradient id="helmetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90D9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2D5F9A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="visorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A3A5C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D2137;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="armorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B7DD8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563A8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5A623;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4891A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="swordGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8E8E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B0B0B0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E74C3C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0392B;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="plumeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5A623;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#E8961E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4891A;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="200" cy="230" r="185" fill="#EBF3FD" opacity="0.5"/>
+
+  <!-- Cape -->
+  <path d="M140 260 Q130 340 125 410 Q150 420 200 425 Q250 420 275 410 Q270 340 260 260"
+        fill="#0A66C2" opacity="0.85"/>
+  <path d="M140 260 Q135 300 132 340" stroke="#0854A0" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M260 260 Q265 300 268 340" stroke="#0854A0" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+  <!-- Body / Suit jacket -->
+  <path d="M155 245 L150 260 Q148 310 150 370 L250 370 Q252 310 250 260 L245 245 Z"
+        fill="#2C3E50" filter="url(#shadow)"/>
+
+  <!-- Shirt collar -->
+  <path d="M175 245 L200 275 L225 245" fill="white" stroke="#ddd" stroke-width="0.5"/>
+
+  <!-- Tie -->
+  <path d="M195 258 L200 275 L205 258 L203 320 L200 330 L197 320 Z" fill="url(#tieGrad)"/>
+  <circle cx="200" cy="255" r="5" fill="url(#tieGrad)"/>
+
+  <!-- Suit lapels -->
+  <path d="M175 245 L155 250 L158 310 L180 290 Z" fill="#34495E"/>
+  <path d="M225 245 L245 250 L242 310 L220 290 Z" fill="#34495E"/>
+
+  <!-- Suit buttons -->
+  <circle cx="200" cy="340" r="3" fill="#556677"/>
+  <circle cx="200" cy="358" r="3" fill="#556677"/>
+
+  <!-- Left arm (holding shield) -->
+  <path d="M155 255 Q120 270 100 310 Q95 335 105 355 L115 350 Q110 330 115 310 Q125 280 155 268"
+        fill="#2C3E50"/>
+  <!-- Gauntlet left -->
+  <path d="M100 335 Q93 345 95 360 Q100 370 115 365 L115 350 Z" fill="url(#helmetGrad)"/>
+
+  <!-- Shield -->
+  <g transform="translate(55, 290)">
+    <path d="M0 10 Q0 0 10 0 L60 0 Q70 0 70 10 L70 50 Q70 85 35 100 Q0 85 0 50 Z"
+          fill="url(#shieldGrad)" stroke="#C4790F" stroke-width="2.5" filter="url(#shadow)"/>
+    <!-- Shield cross / LI logo stylized -->
+    <rect x="28" y="12" width="14" height="14" rx="2" fill="#0A66C2"/>
+    <text x="35" y="23" font-family="Arial, sans-serif" font-weight="bold" font-size="11"
+          fill="white" text-anchor="middle">in</text>
+    <!-- Shield decorative lines -->
+    <line x1="35" y1="30" x2="35" y2="85" stroke="#C4790F" stroke-width="1.5" opacity="0.5"/>
+    <line x1="8" y1="45" x2="62" y2="45" stroke="#C4790F" stroke-width="1.5" opacity="0.5"/>
+  </g>
+
+  <!-- Right arm (holding sword) -->
+  <path d="M245 255 Q280 265 295 290 Q305 310 300 340 L290 338 Q293 312 285 295 Q275 275 245 268"
+        fill="#2C3E50"/>
+  <!-- Gauntlet right -->
+  <path d="M293 320 Q300 335 298 350 Q293 358 280 355 L283 340 Z" fill="url(#helmetGrad)"/>
+
+  <!-- Sword -->
+  <g transform="translate(278, 180) rotate(25)">
+    <!-- Blade -->
+    <path d="M-3 0 L0 -100 L3 0 Z" fill="url(#swordGrad)" stroke="#999" stroke-width="0.5"/>
+    <!-- Fuller (groove in blade) -->
+    <line x1="0" y1="-90" x2="0" y2="-10" stroke="#ccc" stroke-width="1" opacity="0.5"/>
+    <!-- Crossguard -->
+    <rect x="-18" y="-2" width="36" height="7" rx="3" fill="#F5A623" stroke="#C4790F" stroke-width="1"/>
+    <!-- Grip -->
+    <rect x="-4" y="5" width="8" height="25" rx="2" fill="#8B4513"/>
+    <!-- Grip wrapping -->
+    <line x1="-4" y1="10" x2="4" y2="13" stroke="#6B3410" stroke-width="1"/>
+    <line x1="-4" y1="16" x2="4" y2="19" stroke="#6B3410" stroke-width="1"/>
+    <line x1="-4" y1="22" x2="4" y2="25" stroke="#6B3410" stroke-width="1"/>
+    <!-- Pommel -->
+    <circle cx="0" cy="33" r="6" fill="#F5A623" stroke="#C4790F" stroke-width="1"/>
+  </g>
+
+  <!-- Neck -->
+  <rect x="185" y="225" width="30" height="25" rx="5" fill="#F5CBA7"/>
+
+  <!-- Helmet -->
+  <g filter="url(#shadow)">
+    <!-- Main helmet dome -->
+    <path d="M145 180 Q145 100 200 80 Q255 100 255 180 L255 215 Q255 235 240 240 L160 240 Q145 235 145 215 Z"
+          fill="url(#helmetGrad)"/>
+
+    <!-- Helmet center ridge -->
+    <path d="M200 80 Q200 75 200 80 L200 195" stroke="#2D5F9A" stroke-width="3" fill="none"/>
+
+    <!-- Visor opening -->
+    <path d="M160 165 Q160 155 170 155 L230 155 Q240 155 240 165 L240 195 Q240 205 230 205 L170 205 Q160 205 160 195 Z"
+          fill="url(#visorGrad)" rx="5"/>
+
+    <!-- Eyes (glowing through visor) -->
+    <ellipse cx="182" cy="178" rx="10" ry="7" fill="#4FC3F7"/>
+    <ellipse cx="218" cy="178" rx="10" ry="7" fill="#4FC3F7"/>
+    <!-- Eye shine -->
+    <ellipse cx="185" cy="176" rx="4" ry="3" fill="white" opacity="0.6"/>
+    <ellipse cx="221" cy="176" rx="4" ry="3" fill="white" opacity="0.6"/>
+    <!-- Friendly eyebrow shapes -->
+    <path d="M170 168 Q177 163 192 166" stroke="#3A8FE0" stroke-width="2" fill="none"/>
+    <path d="M230 168 Q223 163 208 166" stroke="#3A8FE0" stroke-width="2" fill="none"/>
+
+    <!-- Visor breathing holes -->
+    <line x1="175" y1="198" x2="190" y2="198" stroke="#0D2137" stroke-width="1.5" opacity="0.6"/>
+    <line x1="175" y1="193" x2="185" y2="193" stroke="#0D2137" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Helmet side rivets -->
+    <circle cx="152" cy="170" r="3" fill="#F5A623"/>
+    <circle cx="152" cy="190" r="3" fill="#F5A623"/>
+    <circle cx="248" cy="170" r="3" fill="#F5A623"/>
+    <circle cx="248" cy="190" r="3" fill="#F5A623"/>
+  </g>
+
+  <!-- Plume/Crest on helmet -->
+  <path d="M200 80 Q195 55 205 35 Q220 25 235 35 Q245 50 235 65 Q225 75 220 85
+           Q215 70 220 55 Q215 45 208 50 Q200 60 200 80"
+        fill="url(#plumeGrad)" opacity="0.9"/>
+  <path d="M200 80 Q198 60 203 45" stroke="#D4891A" stroke-width="1" fill="none" opacity="0.5"/>
+
+  <!-- Shoulder armor (pauldrons) -->
+  <path d="M145 235 Q125 230 120 245 Q118 260 130 265 Q145 268 155 260 Z"
+        fill="url(#armorGrad)" stroke="#2D5F9A" stroke-width="1"/>
+  <path d="M255 235 Q275 230 280 245 Q282 260 270 265 Q255 268 245 260 Z"
+        fill="url(#armorGrad)" stroke="#2D5F9A" stroke-width="1"/>
+  <!-- Pauldron rivets -->
+  <circle cx="137" cy="248" r="2.5" fill="#F5A623"/>
+  <circle cx="263" cy="248" r="2.5" fill="#F5A623"/>
+
+  <!-- Belt -->
+  <rect x="150" y="365" width="100" height="12" rx="3" fill="#8B4513"/>
+  <rect x="192" y="363" width="16" height="16" rx="2" fill="#F5A623" stroke="#C4790F" stroke-width="1"/>
+
+  <!-- Legs -->
+  <rect x="160" y="377" width="35" height="65" rx="5" fill="#2C3E50"/>
+  <rect x="205" y="377" width="35" height="65" rx="5" fill="#2C3E50"/>
+  <!-- Shoes -->
+  <path d="M158 435 Q155 448 160 450 L198 450 Q200 448 198 440 L195 435 Z" fill="#1A1A2E" rx="3"/>
+  <path d="M203 435 Q200 448 205 450 L243 450 Q245 448 243 440 L240 435 Z" fill="#1A1A2E" rx="3"/>
+
+  <!-- Name banner -->
+  <g transform="translate(200, 475)">
+    <rect x="-85" y="-15" width="170" height="30" rx="5" fill="#0A66C2"/>
+    <text x="0" y="5" font-family="Arial, sans-serif" font-weight="bold" font-size="18"
+          fill="white" text-anchor="middle" letter-spacing="3">LIWARRIOR</text>
+  </g>
+</svg>

@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420">
+  <defs>
+    <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90D9" /><stop offset="100%" style="stop-color:#2D5F9A" />
+    </linearGradient>
+    <linearGradient id="vg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A3A5C" /><stop offset="100%" style="stop-color:#0D2137" />
+    </linearGradient>
+    <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5A623" /><stop offset="100%" style="stop-color:#D4891A" />
+    </linearGradient>
+  </defs>
+
+  <!-- Labels -->
+  <text x="150" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#333" text-anchor="middle">SEARCHING</text>
+  <text x="450" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#333" text-anchor="middle">CONNECTED!</text>
+  <text x="750" y="30" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#333" text-anchor="middle">VICTORY</text>
+
+  <!-- === POSE 1: Searching (holding binoculars) === -->
+  <g transform="translate(150, 220)">
+    <!-- Cape -->
+    <path d="M-45 40 Q-50 90 -48 140 Q-20 150 0 152 Q20 150 48 140 Q50 90 45 40" fill="#0A66C2" opacity="0.8"/>
+
+    <!-- Body (suit) -->
+    <path d="M-35 25 L-38 40 Q-40 90 -38 130 L38 130 Q40 90 38 40 L35 25 Z" fill="#2C3E50"/>
+
+    <!-- Shirt + tie -->
+    <path d="M-12 25 L0 48 L12 25" fill="white"/>
+    <path d="M-3 36 L0 48 L3 36 L1.5 90 L0 96 L-1.5 90 Z" fill="#E74C3C"/>
+
+    <!-- Lapels -->
+    <path d="M-12 25 L-35 30 L-32 75 L-15 60 Z" fill="#34495E"/>
+    <path d="M12 25 L35 30 L32 75 L15 60 Z" fill="#34495E"/>
+
+    <!-- Left arm (holding binoculars up) -->
+    <path d="M-35 30 Q-55 15 -50 -10 Q-45 -25 -35 -20" fill="#2C3E50"/>
+    <path d="M-50 -15 Q-55 -25 -48 -30 Q-40 -28 -42 -18" fill="url(#hg)"/>
+
+    <!-- Right arm (holding binoculars up) -->
+    <path d="M35 30 Q55 15 50 -10 Q45 -25 35 -20" fill="#2C3E50"/>
+    <path d="M50 -15 Q55 -25 48 -30 Q40 -28 42 -18" fill="url(#hg)"/>
+
+    <!-- Binoculars -->
+    <g transform="translate(0, -35)">
+      <rect x="-25" y="-8" width="15" height="20" rx="7" fill="#333" stroke="#555" stroke-width="1"/>
+      <rect x="10" y="-8" width="15" height="20" rx="7" fill="#333" stroke="#555" stroke-width="1"/>
+      <rect x="-10" y="0" width="20" height="6" rx="2" fill="#444"/>
+      <!-- Lens glare -->
+      <ellipse cx="-17.5" cy="-8" rx="6" ry="5" fill="#4FC3F7" opacity="0.7"/>
+      <ellipse cx="17.5" cy="-8" rx="6" ry="5" fill="#4FC3F7" opacity="0.7"/>
+    </g>
+
+    <!-- Helmet -->
+    <path d="M-30 -10 Q-30 -55 0 -68 Q30 -55 30 -10 L30 5 Q30 15 22 18 L-22 18 Q-30 15 -30 5 Z" fill="url(#hg)"/>
+    <line x1="0" y1="-68" x2="0" y2="-5" stroke="#2D5F9A" stroke-width="2"/>
+    <rect x="-22" y="-20" width="44" height="22" rx="4" fill="url(#vg)"/>
+    <ellipse cx="-10" cy="-8" rx="7" ry="5" fill="#4FC3F7"/>
+    <ellipse cx="10" cy="-8" rx="7" ry="5" fill="#4FC3F7"/>
+    <ellipse cx="-8" cy="-9.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+    <ellipse cx="12" cy="-9.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+    <!-- Raised eyebrows (curious) -->
+    <path d="M-19 -18 Q-13 -23 -3 -20" stroke="#3A8FE0" stroke-width="1.5" fill="none"/>
+    <path d="M19 -18 Q13 -23 3 -20" stroke="#3A8FE0" stroke-width="1.5" fill="none"/>
+    <!-- Plume -->
+    <path d="M0 -68 Q-2 -82 4 -90 Q10 -95 15 -90 Q18 -83 14 -76 Q10 -72 8 -68" fill="#F5A623"/>
+    <!-- Rivets -->
+    <circle cx="-28" cy="-12" r="2" fill="#F5A623"/>
+    <circle cx="28" cy="-12" r="2" fill="#F5A623"/>
+
+    <!-- Shoulder armor -->
+    <path d="M-30 15 Q-42 12 -45 22 Q-46 32 -38 35 Q-30 37 -25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+    <path d="M30 15 Q42 12 45 22 Q46 32 38 35 Q30 37 25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+
+    <!-- Legs -->
+    <rect x="-25" y="130" width="22" height="40" rx="4" fill="#2C3E50"/>
+    <rect x="3" y="130" width="22" height="40" rx="4" fill="#2C3E50"/>
+    <path d="M-27 166 Q-28 175 -25 177 L-2 177 Q0 175 -1 170 L-3 166 Z" fill="#1A1A2E"/>
+    <path d="M1 166 Q0 175 3 177 L26 177 Q28 175 27 170 L25 166 Z" fill="#1A1A2E"/>
+  </g>
+
+  <!-- === POSE 2: Connected! (thumbs up, happy) === -->
+  <g transform="translate(450, 220)">
+    <!-- Cape -->
+    <path d="M-45 40 Q-50 90 -48 140 Q-20 150 0 152 Q20 150 48 140 Q50 90 45 40" fill="#0A66C2" opacity="0.8"/>
+
+    <!-- Body -->
+    <path d="M-35 25 L-38 40 Q-40 90 -38 130 L38 130 Q40 90 38 40 L35 25 Z" fill="#2C3E50"/>
+    <path d="M-12 25 L0 48 L12 25" fill="white"/>
+    <path d="M-3 36 L0 48 L3 36 L1.5 90 L0 96 L-1.5 90 Z" fill="#E74C3C"/>
+    <path d="M-12 25 L-35 30 L-32 75 L-15 60 Z" fill="#34495E"/>
+    <path d="M12 25 L35 30 L32 75 L15 60 Z" fill="#34495E"/>
+
+    <!-- Left arm (relaxed) -->
+    <path d="M-35 30 Q-52 45 -55 75 Q-54 90 -48 95" fill="#2C3E50"/>
+    <path d="M-52 85 Q-58 95 -55 102 Q-50 108 -42 104 L-44 92" fill="url(#hg)"/>
+
+    <!-- Right arm (thumbs up!) -->
+    <path d="M35 30 Q58 10 62 -15 Q60 -30 55 -35" fill="#2C3E50"/>
+    <!-- Fist -->
+    <path d="M55 -30 Q52 -42 56 -48 Q62 -52 68 -48 Q72 -42 68 -35 L65 -30 Q62 -25 56 -28 Z" fill="url(#hg)"/>
+    <!-- Thumb up -->
+    <path d="M56 -48 Q54 -62 58 -70 Q62 -74 66 -70 Q68 -64 65 -52" fill="#F5CBA7" stroke="#E5B898" stroke-width="0.8"/>
+
+    <!-- Helmet -->
+    <path d="M-30 -10 Q-30 -55 0 -68 Q30 -55 30 -10 L30 5 Q30 15 22 18 L-22 18 Q-30 15 -30 5 Z" fill="url(#hg)"/>
+    <line x1="0" y1="-68" x2="0" y2="-5" stroke="#2D5F9A" stroke-width="2"/>
+    <rect x="-22" y="-20" width="44" height="22" rx="4" fill="url(#vg)"/>
+    <!-- Happy squinty eyes -->
+    <path d="M-16 -8 Q-10 -14 -4 -8" stroke="#4FC3F7" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M4 -8 Q10 -14 16 -8" stroke="#4FC3F7" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Plume -->
+    <path d="M0 -68 Q-2 -82 4 -90 Q10 -95 15 -90 Q18 -83 14 -76 Q10 -72 8 -68" fill="#F5A623"/>
+    <!-- Rivets -->
+    <circle cx="-28" cy="-12" r="2" fill="#F5A623"/>
+    <circle cx="28" cy="-12" r="2" fill="#F5A623"/>
+
+    <!-- Shoulder armor -->
+    <path d="M-30 15 Q-42 12 -45 22 Q-46 32 -38 35 Q-30 37 -25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+    <path d="M30 15 Q42 12 45 22 Q46 32 38 35 Q30 37 25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+
+    <!-- Sparkles around -->
+    <text x="-65" y="-50" font-size="20" fill="#F5A623">✦</text>
+    <text x="50" y="-65" font-size="16" fill="#4FC3F7">✦</text>
+    <text x="70" y="-15" font-size="12" fill="#F5A623">✦</text>
+    <text x="-72" y="10" font-size="14" fill="#4FC3F7">✦</text>
+
+    <!-- Legs -->
+    <rect x="-25" y="130" width="22" height="40" rx="4" fill="#2C3E50"/>
+    <rect x="3" y="130" width="22" height="40" rx="4" fill="#2C3E50"/>
+    <path d="M-27 166 Q-28 175 -25 177 L-2 177 Q0 175 -1 170 L-3 166 Z" fill="#1A1A2E"/>
+    <path d="M1 166 Q0 175 3 177 L26 177 Q28 175 27 170 L25 166 Z" fill="#1A1A2E"/>
+  </g>
+
+  <!-- === POSE 3: Victory (sword raised, celebrating) === -->
+  <g transform="translate(750, 220)">
+    <!-- Cape (flowing more dramatically) -->
+    <path d="M-45 40 Q-60 90 -65 140 Q-35 155 0 158 Q35 155 55 145 Q50 90 45 40" fill="#0A66C2" opacity="0.85"/>
+
+    <!-- Body -->
+    <path d="M-35 25 L-38 40 Q-40 90 -38 130 L38 130 Q40 90 38 40 L35 25 Z" fill="#2C3E50"/>
+    <path d="M-12 25 L0 48 L12 25" fill="white"/>
+    <path d="M-3 36 L0 48 L3 36 L1.5 90 L0 96 L-1.5 90 Z" fill="#E74C3C"/>
+    <path d="M-12 25 L-35 30 L-32 75 L-15 60 Z" fill="#34495E"/>
+    <path d="M12 25 L35 30 L32 75 L15 60 Z" fill="#34495E"/>
+
+    <!-- Left arm (fist pump) -->
+    <path d="M-35 30 Q-58 10 -55 -20 Q-52 -35 -45 -40" fill="#2C3E50"/>
+    <path d="M-50 -32 Q-55 -42 -50 -48 Q-44 -50 -40 -45 Q-38 -38 -42 -32" fill="url(#hg)"/>
+
+    <!-- Right arm (sword raised high!) -->
+    <path d="M35 30 Q55 5 50 -30 Q48 -45 45 -50" fill="#2C3E50"/>
+    <path d="M46 -42 Q42 -52 46 -58 Q52 -62 56 -55 Q56 -48 52 -42" fill="url(#hg)"/>
+
+    <!-- Raised sword -->
+    <g transform="translate(50, -95) rotate(-10)">
+      <path d="M-2.5 0 L0 -65 L2.5 0 Z" fill="#E8E8E8" stroke="#999" stroke-width="0.5"/>
+      <line x1="0" y1="-58" x2="0" y2="-8" stroke="#ccc" stroke-width="0.8" opacity="0.5"/>
+      <rect x="-14" y="-2" width="28" height="6" rx="2.5" fill="#F5A623" stroke="#C4790F" stroke-width="0.8"/>
+      <rect x="-3" y="4" width="6" height="18" rx="1.5" fill="#8B4513"/>
+      <circle cx="0" cy="24" r="4.5" fill="#F5A623" stroke="#C4790F" stroke-width="0.8"/>
+    </g>
+
+    <!-- Helmet -->
+    <path d="M-30 -10 Q-30 -55 0 -68 Q30 -55 30 -10 L30 5 Q30 15 22 18 L-22 18 Q-30 15 -30 5 Z" fill="url(#hg)"/>
+    <line x1="0" y1="-68" x2="0" y2="-5" stroke="#2D5F9A" stroke-width="2"/>
+    <rect x="-22" y="-20" width="44" height="22" rx="4" fill="url(#vg)"/>
+    <!-- Determined/triumphant eyes -->
+    <ellipse cx="-10" cy="-8" rx="7" ry="5" fill="#4FC3F7"/>
+    <ellipse cx="10" cy="-8" rx="7" ry="5" fill="#4FC3F7"/>
+    <ellipse cx="-8" cy="-9.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+    <ellipse cx="12" cy="-9.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+    <!-- Intense brows -->
+    <path d="M-19 -17 Q-13 -22 -3 -18" stroke="#3A8FE0" stroke-width="2" fill="none"/>
+    <path d="M19 -17 Q13 -22 3 -18" stroke="#3A8FE0" stroke-width="2" fill="none"/>
+    <!-- Plume (more dramatic) -->
+    <path d="M0 -68 Q-3 -85 5 -95 Q12 -100 18 -94 Q22 -85 17 -77 Q12 -72 9 -68" fill="#F5A623"/>
+    <path d="M5 -95 Q8 -105 15 -108 Q20 -106 18 -98" fill="#F5A623" opacity="0.7"/>
+    <!-- Rivets -->
+    <circle cx="-28" cy="-12" r="2" fill="#F5A623"/>
+    <circle cx="28" cy="-12" r="2" fill="#F5A623"/>
+
+    <!-- Shoulder armor -->
+    <path d="M-30 15 Q-42 12 -45 22 Q-46 32 -38 35 Q-30 37 -25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+    <path d="M30 15 Q42 12 45 22 Q46 32 38 35 Q30 37 25 32 Z" fill="url(#hg)" stroke="#2D5F9A" stroke-width="0.8"/>
+
+    <!-- Victory sparkles and confetti -->
+    <text x="-70" y="-60" font-size="18" fill="#F5A623">★</text>
+    <text x="55" y="-80" font-size="22" fill="#F5A623">★</text>
+    <text x="75" y="-30" font-size="14" fill="#4FC3F7">★</text>
+    <text x="-75" y="5" font-size="12" fill="#E74C3C">★</text>
+    <text x="70" y="20" font-size="16" fill="#F5A623">★</text>
+    <!-- Confetti bits -->
+    <rect x="-68" y="-30" width="6" height="3" rx="1" fill="#E74C3C" transform="rotate(30 -68 -30)"/>
+    <rect x="65" y="-55" width="6" height="3" rx="1" fill="#4FC3F7" transform="rotate(-20 65 -55)"/>
+    <rect x="-55" y="20" width="5" height="2.5" rx="1" fill="#F5A623" transform="rotate(45 -55 20)"/>
+    <rect x="80" y="0" width="5" height="2.5" rx="1" fill="#27AE60" transform="rotate(-35 80 0)"/>
+
+    <!-- Legs (power stance, slightly wider) -->
+    <rect x="-30" y="130" width="22" height="40" rx="4" fill="#2C3E50" transform="rotate(-5 -19 150)"/>
+    <rect x="8" y="130" width="22" height="40" rx="4" fill="#2C3E50" transform="rotate(5 19 150)"/>
+    <path d="M-34 166 Q-36 175 -32 177 L-8 177 Q-5 175 -7 170 L-9 166 Z" fill="#1A1A2E"/>
+    <path d="M8 166 Q6 175 9 177 L34 177 Q36 175 35 170 L33 166 Z" fill="#1A1A2E"/>
+  </g>
+
+  <!-- Pose labels -->
+  <text x="150" y="410" font-family="Arial, sans-serif" font-size="11" fill="#666" text-anchor="middle">"Finding recruiters..."</text>
+  <text x="450" y="410" font-family="Arial, sans-serif" font-size="11" fill="#666" text-anchor="middle">"They accepted!"</text>
+  <text x="750" y="410" font-family="Arial, sans-serif" font-size="11" fill="#666" text-anchor="middle">"Meeting scheduled!"</text>
+</svg>

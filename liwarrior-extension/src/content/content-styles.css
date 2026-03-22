@@ -1,0 +1,85 @@
+/* ============================================================
+   LIWarrior — Injected Styles (minimal, non-intrusive)
+   Only styles the LIWarrior overlay elements, never modifies
+   LinkedIn's own UI.
+   ============================================================ */
+
+.liwarrior-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+.liwarrior-badge:hover {
+  opacity: 0.85;
+}
+
+.liwarrior-badge--tracked {
+  background: #0A66C2;
+  color: white;
+}
+
+.liwarrior-badge--commonality {
+  background: #F5A623;
+  color: #1a1a2e;
+}
+
+.liwarrior-badge--new {
+  background: #27AE60;
+  color: white;
+}
+
+/* Toast notification that appears when something happens */
+.liwarrior-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1a1a2e;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: liwarrior-slide-up 0.3s ease-out;
+  max-width: 360px;
+}
+
+.liwarrior-toast__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.liwarrior-toast__close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
+
+@keyframes liwarrior-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

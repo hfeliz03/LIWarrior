@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A66C2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#084E96;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="helm" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5BA0E0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3478BE;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vis" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A3A5C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D2137;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="url(#bg)"/>
+
+  <!-- Helmet shape -->
+  <path d="M38 72 Q38 32 64 22 Q90 32 90 72 L90 85 Q90 95 82 98 L46 98 Q38 95 38 85 Z"
+        fill="url(#helm)"/>
+
+  <!-- Center ridge -->
+  <line x1="64" y1="22" x2="64" y2="75" stroke="#2D6AAE" stroke-width="2.5"/>
+
+  <!-- Visor -->
+  <rect x="44" y="55" width="40" height="30" rx="5" fill="url(#vis)"/>
+
+  <!-- Eyes -->
+  <ellipse cx="55" cy="68" rx="7" ry="5" fill="#4FC3F7"/>
+  <ellipse cx="73" cy="68" rx="7" ry="5" fill="#4FC3F7"/>
+  <ellipse cx="57" cy="66.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+  <ellipse cx="75" cy="66.5" rx="3" ry="2" fill="white" opacity="0.6"/>
+
+  <!-- Friendly eyebrows -->
+  <path d="M47 60 Q52 56 63 58" stroke="#3A8FE0" stroke-width="1.5" fill="none"/>
+  <path d="M81 60 Q76 56 65 58" stroke="#3A8FE0" stroke-width="1.5" fill="none"/>
+
+  <!-- Visor slits -->
+  <line x1="50" y1="80" x2="60" y2="80" stroke="#0D2137" stroke-width="1.2" opacity="0.5"/>
+  <line x1="50" y1="77" x2="57" y2="77" stroke="#0D2137" stroke-width="1.2" opacity="0.5"/>
+
+  <!-- Plume -->
+  <path d="M64 22 Q61 10 68 4 Q76 0 82 5 Q87 12 82 20 Q77 25 74 28
+           Q72 18 75 10 Q72 6 68 9 Q64 14 64 22"
+        fill="#F5A623" opacity="0.9"/>
+
+  <!-- Side rivets -->
+  <circle cx="40" cy="65" r="2.5" fill="#F5A623"/>
+  <circle cx="40" cy="78" r="2.5" fill="#F5A623"/>
+  <circle cx="88" cy="65" r="2.5" fill="#F5A623"/>
+  <circle cx="88" cy="78" r="2.5" fill="#F5A623"/>
+
+  <!-- Tiny tie peek -->
+  <path d="M61 98 L64 106 L67 98" fill="#E74C3C"/>
+
+  <!-- Tiny collar -->
+  <path d="M52 98 L64 106 L76 98" fill="white" opacity="0.7"/>
+</svg>
