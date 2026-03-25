@@ -1,13 +1,9 @@
 // ============================================================
-// Connection Observer
-// Detects when the USER clicks "Connect" on a profile.
-// PASSIVE — listens for DOM changes after user interaction,
-// never initiates clicks or actions.
-//
-// Detection strategies:
-// 1. Direct click listener on Connect buttons (captures the intent)
-// 2. Modal detection: watches for the "Add note" / "Send" modal
-// 3. Button state change: catches "Connect" → "Pending" transitions
+// LIWarrior — Connection Observer (v2)
+// Strategies:
+// 1. Click capture: catches "Connect" clicks before modals open
+// 2. Modal Send capture: catches the final "Send" inside the popup
+// 3. Status change: watches for buttons changing to "Pending"
 // 4. Toast/feedback detection: catches LinkedIn's success toast
 // ============================================================
 
@@ -24,33 +20,27 @@ export function observeConnectionActions(
 ): MutationObserver {
   const reportedConnections = new Set<string>();
 
-  function report(name: string, profileUrl: string, metadata?: any) {
-    const key = `${name}_${profileUrl}`;
-    if (name && !reportedConnections.has(key)) {
-      reportedConnections.add(key);
-      console.log('[LIWarrior][ConnObs] Connection detected:', name, profileUrl, metadata);
-      onConnectionSent({ name, profileUrl, ...metadata });
-    }
+  // Helper: Capitalize first letters of a name
+  function capitalizeName(name: string): string {
+    if (!name) return '';
+    return name.trim().split(/\s+/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
   }
 
-  // Extract the profile name from the current page or nearest context
+  function parseNameFromAriaLabel(label: string): string {
+    const invite = label.match(/^Invite\s+(.+?)\s+to connect/i);
+    if (invite) return capitalizeName(invite[1]);
+    return capitalizeName(label);
+  }
+
   function getProfileName(context?: Element | null): string {
-    const h1 = context?.querySelector('h1') || document.querySelector('h1.text-heading-xlarge');
-    if (h1?.textContent?.trim()) return h1.textContent.trim();
-
-    // In a search result card or similar list item
-    const searchName = context?.querySelector(
-      '.entity-result__title-text a span[aria-hidden="true"], .entity-result__title-text a, .app-aware-link span[aria-hidden="true"]'
-    );
-    if (searchName?.textContent?.trim()) return searchName.textContent.trim();
-
-    // Fallback: Use the text from the profile link itself
-    // Strategy A: Explicit name elements
     const nameSelectors = [
       'h1.text-heading-xlarge',
       '.entity-result__title-text a span[aria-hidden="true"]',
       '.pv-text-details__left-panel h1',
-      '.artdeco-entity-lockup__title'
+      '.artdeco-entity-lockup__title',
+      '[data-field="name"]'
     ];
     
     for (const selector of nameSelectors) {
@@ -58,15 +48,13 @@ export function observeConnectionActions(
       if (el?.textContent?.trim()) return capitalizeName(el?.textContent?.trim());
     }
 
-    // Strategy B: Aria-label parsing
     const ariaEl = context?.querySelector('[aria-label*="Invite"], [aria-label*="View profile"]');
     if (ariaEl) {
       const label = ariaEl.getAttribute('aria-label') || '';
       const name = parseNameFromAriaLabel(label);
-      if (name) return name;
+      if (name && name !== capitalizeName(label)) return name;
     }
 
-    // Strategy C: Text in profile link
     const profileLink = context?.querySelector('.app-aware-link[href*="/in/"]');
     if (profileLink?.textContent?.trim()) {
       return capitalizeName(profileLink.textContent.trim().split('\n')[0].trim());
@@ -75,10 +63,17 @@ export function observeConnectionActions(
     return '';
   }
 
+  function getProfileUrl(context?: Element | null): string {
+    const link = (context?.querySelector('.entity-result__title-text a, .app-aware-link, a[href*="/in/"]') || 
+                 document.querySelector('.pv-text-details__left-panel a[href*="/in/"]')) as HTMLAnchorElement;
+    if (link?.href && link.href.includes('/in/')) return link.href.split('?')[0].replace(/\/$/, '');
+    if (window.location.pathname.startsWith('/in/')) return window.location.href.split('?')[0].replace(/\/$/, '');
+    return '';
+  }
+
   function getProfileMetadata(context?: Element | null): { title: string; company: string; imageUrl: string } {
     const meta = { title: '', company: '', imageUrl: '' };
     
-    // 1. Image Selectors (LinkedIn has many variations including lazy-loading)
     const imgSelectors = [
       '.pv-top-card-profile-picture__image',
       '.entity-result__image img',
@@ -87,14 +82,12 @@ export function observeConnectionActions(
       '.ivm-image-view-model img',
       '.artdeco-entity-lockup__image img',
       '.update-components-actor__avatar img',
-      'img[class*="actor__avatar"]',
-      'img[class*="entity-lockup__image"]'
+      'img[class*="actor__avatar"]'
     ];
     
     for (const selector of imgSelectors) {
       const img = (context?.querySelector(selector) || document.querySelector(selector)) as HTMLImageElement;
       if (img) {
-        // Try all possible image source attributes
         const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-delayed-url');
         if (src && !src.includes('data:image') && !src.includes('ghost')) {
           meta.imageUrl = src;
@@ -103,15 +96,12 @@ export function observeConnectionActions(
       }
     }
 
-    // 2. Title / Headline Selectors
     const titleSelectors = [
       'h1 + .text-body-medium', 
       '.text-body-medium.break-words',
       '.entity-result__primary-subtitle',
       '.artdeco-entity-lockup__subtitle',
       '.text-body-small.t-black--light',
-      '.t-14.t-black.t-normal',
-      '[data-field="headline"]',
       '.pv-text-details__left-panel .text-body-medium'
     ];
     
@@ -123,11 +113,9 @@ export function observeConnectionActions(
       }
     }
 
-    // 3. Company Extraction logic
     const companySelectors = [
       '[data-field="experience_company_logo"] img',
       '.pv-text-details__right-panel [aria-label*="Current company"]',
-      '.pv-entity__secondary-title',
       '.entity-result__primary-subtitle',
       '.artdeco-entity-lockup__subtitle',
       'button[aria-label*="Current company"]'
@@ -140,16 +128,11 @@ export function observeConnectionActions(
       else if (el?.textContent) val = el.textContent;
       
       if (val.includes(' at ')) {
-         const parts = val.split(' at ');
-         meta.company = (parts[1] || '').split('|')[0].split('·')[0].trim();
+         meta.company = val.split(' at ')[1].split('|')[0].split('·')[0].trim();
          if (meta.company) break;
-      } else if (val.trim()) {
-         const clean = val.trim();
-         // Basic filter to avoid titles being counted as companies
-         if (clean.length > 2 && clean.length < 50 && !clean.toLowerCase().includes('recruiter')) {
-           meta.company = clean;
-           break;
-         }
+      } else if (val.trim() && val.trim().length > 2 && val.trim().length < 50 && !val.toLowerCase().includes('recruiter')) {
+         meta.company = val.trim();
+         break;
       }
     }
 
@@ -165,268 +148,119 @@ export function observeConnectionActions(
     return studentKeywords.some(keyword => lower.includes(keyword));
   }
 
-  function capitalizeName(name: string): string {
-    if (!name) return '';
-    return name.split(' ')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-      .join(' ');
+  function scrape(context?: Element | null) {
+    const name = getProfileName(context);
+    const url = getProfileUrl(context);
+    const meta = getProfileMetadata(context);
+    console.log('[LIWarrior v2] Scrape Result:', { name, url, meta });
+    return { name, url, meta };
   }
 
-  function parseNameFromAriaLabel(label: string): string {
-    const invite = label.match(/^Invite\s+(.+?)\s+to connect/i);
-    if (invite) return capitalizeName(invite[1]);
-    return capitalizeName(label);
-  }
-
-  function getProfileUrl(context?: Element | null): string {
-    const link = context?.querySelector('.entity-result__title-text a, .app-aware-link') as HTMLAnchorElement;
-    if (link?.href && link.href.includes('/in/')) return link.href.split('?')[0];
-
-    const canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-    if (canonical?.href?.includes('/in/')) return canonical.href;
-    
-    // Default to the current page path
-    return window.location.href.split('?')[0];
-  }
-
-  // We store the target of the last "Connect" click because the modal
-  // won't have the profile URL available in its DOM.
-  let pendingConnection: { 
-  name: string; 
-  url: string; 
-  metadata: { title: string; company: string; imageUrl: string };
-  timestamp: number 
-} | null = null;
-
-  // ------------------------------------------------------------------
-  // Strategy 1: Click listener on Connect buttons
-  // We use event delegation on the body to catch clicks on current
-  // and future Connect buttons.
-  // ------------------------------------------------------------------
-  document.body.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    // LinkedIn's UI is extremely varied. It can be a `<button>`, an `<a>`, a `<div>` with `role="button"`, or an `<li>` in a dropdown ("More" menu)
-    const clickable = target.closest('button, [role="button"], a, li, .artdeco-dropdown__item, .artdeco-button');
-
-    if (!clickable) return;
-
-    const ariaLabel = (clickable.getAttribute('aria-label') || '').toLowerCase();
-    const buttonText = (clickable.textContent || '').trim().toLowerCase();
-
-    // Check if this is a Connect-type button
-    const isConnectButton =
-      ariaLabel.includes('invite') && ariaLabel.includes('connect') ||
-      ariaLabel.includes('connect with') ||
-      buttonText === 'connect' ||
-      buttonText === 'send' && clickable.closest('[data-test-modal],.artdeco-modal,.send-invite');
-
-    if (!isConnectButton) return;
-    
-    console.log('[LIWarrior] Connect button click detected. Text:', buttonText, '| Aria:', ariaLabel);
-
-    const container = clickable.closest(
-      'section, .entity-result, .pvs-profile-actions, .artdeco-modal, .send-invite'
-    );
-
-    let name = parseNameFromAriaLabel(ariaLabel);
-    if (!name) name = getProfileName(container);
-
-    const profileUrl = getProfileUrl(container);
-    const metadata = getProfileMetadata(container);
-    
-    console.log('[LIWarrior] Extracted intent -> Name:', name, '| URL:', profileUrl, '| Meta:', metadata);
-
-    // Filter out students
-    if (isStudent(metadata.title)) {
-       console.log('[LIWarrior] Skipping student:', name, '| Headline:', metadata.title);
-       return;
-    }
-
-    if (name || profileUrl) {
-      pendingConnection = { name, url: profileUrl, metadata, timestamp: Date.now() };
+  function report(name: string, profileUrl: string, metadata?: any) {
+    const key = `${name}_${profileUrl}`;
+    if (name && !reportedConnections.has(key)) {
+      reportedConnections.add(key);
+      console.log('[LIWarrior v2][ConnObs] Connection detected:', name, profileUrl, metadata);
       
-      setTimeout(() => {
-        const modalOpen = !!document.querySelector('.artdeco-modal, [role="dialog"]');
-        console.log('[LIWarrior] 2s Connect Check -> Modal Open?', modalOpen);
-        if (!modalOpen) {
-          console.log('[LIWarrior] No modal found, assuming immediate send.');
-          if (name && profileUrl) report(name, profileUrl, metadata);
-        }
-      }, 2000);
-    } else {
-      console.warn('[LIWarrior] Connect clicked but failed to extract both name and URL from DOM');
+      // On-page debug toast
+      const debugToast = document.createElement('div');
+      debugToast.style.cssText = 'position:fixed;bottom:100px;left:20px;background:#1a1a2e;color:#00ff00;padding:12px;z-index:99999;font-family:monospace;font-size:11px;border:2px solid #00ff00;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-width:300px;';
+      debugToast.innerHTML = `<b>[LIWarrior v2] SENT!</b><br>Name: ${name}<br>Title: ${metadata?.title?.slice(0, 30) || 'FAIL'}<br>Img: ${metadata?.imageUrl ? 'OK' : 'FAIL'}`;
+      document.body.appendChild(debugToast);
+      setTimeout(() => debugToast.remove(), 6000);
+
+      onConnectionSent({ name, profileUrl, ...metadata });
     }
-  }, true); // Capture phase so we see it before LinkedIn can stop propagation
+  }
+
+  let pendingConnection: { 
+    name: string; 
+    url: string; 
+    metadata: { title: string; company: string; imageUrl: string };
+    timestamp: number 
+  } | null = null;
 
   // ------------------------------------------------------------------
-  // Strategy 2: Modal detection ("Send invitation" modal)
-  // When user clicks Connect, LinkedIn often shows a modal with
-  // "Add a note" or "Send without a note". Watch for the Send click.
+  // Listeners
   // ------------------------------------------------------------------
-  document.body.addEventListener('click', (e) => {
+
+  document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
-    const clickable = target.closest('button, [role="button"], a, .artdeco-button');
-
+    const clickable = target.closest('button, [role="button"], a, li');
     if (!clickable) return;
 
-    const ariaLabel = (clickable.getAttribute('aria-label') || '').toLowerCase();
-    const buttonText = (clickable.textContent || '').trim().toLowerCase();
+    const buttonText = clickable.textContent?.toLowerCase().trim();
+    const ariaLabel = clickable.getAttribute('aria-label')?.toLowerCase() || '';
 
-    // The modal "Send" or "Send without a note" button
-    const isModalSend =
-      (buttonText === 'send' || buttonText.includes('send without') || buttonText.includes('send invitation') || buttonText.includes('connect')) &&
-      clickable.closest('.artdeco-modal, [role="dialog"], .send-invite');
-
-    if (!isModalSend) return;
-    
-    console.log('[LIWarrior] Modal Send button clicked. Text:', buttonText);
-
-    const modal = clickable.closest('.artdeco-modal, [role="dialog"], .send-invite');
-    let name = '';
-
-    const strongName = modal?.querySelector('strong')?.textContent?.trim();
-    if (strongName) name = strongName;
-    if (!name) name = getProfileName(modal);
-    
-    let profileUrl = getProfileUrl(modal);
-    let metadata = getProfileMetadata(modal);
-
-    console.log('[LIWarrior] Extracted modal target -> Name:', name, '| URL:', profileUrl, '| Meta:', metadata);
-
-    if (pendingConnection && Date.now() - pendingConnection.timestamp < 30000) {
-      console.log('[LIWarrior] Using pendingConnection data instead:', pendingConnection);
-      if (!profileUrl.includes('/in/') || window.location.pathname.startsWith('/search')) {
-        profileUrl = pendingConnection.url;
+    // A. Main Connect Click
+    if (buttonText === 'connect' || ariaLabel.includes('invite') || ariaLabel.includes('connect')) {
+      const container = clickable.closest('section, .entity-result, .pvs-profile-actions, .artdeco-modal, .send-invite');
+      const { name, url: profileUrl, meta: metadata } = scrape(container);
+      
+      if (isStudent(metadata.title)) {
+         console.log('[LIWarrior v2] Skipping student:', name);
+         return;
       }
-      if (!name) name = pendingConnection.name;
-      if (!metadata.title) metadata = pendingConnection.metadata;
+
+      if (name || profileUrl) {
+        pendingConnection = { name, url: profileUrl, metadata, timestamp: Date.now() };
+        console.log('[LIWarrior v2] Pending set:', pendingConnection);
+
+        setTimeout(() => {
+          const modalOpen = !!document.querySelector('.artdeco-modal, [role="dialog"]');
+          if (!modalOpen) {
+            if (name && profileUrl) report(name, profileUrl, metadata);
+          }
+        }, 2000);
+      }
     }
 
-    // Filter out students in modal too just in case
-    if (isStudent(metadata.title)) {
-       console.log('[LIWarrior] Skipping student in modal:', name);
-       return;
-    }
+    // B. Modal Send Click
+    if (buttonText === 'send' || buttonText === 'send without a note') {
+      const modal = clickable.closest('.artdeco-modal, [role="dialog"], .send-invite');
+      const { name: mName, url: mUrl, meta: mMeta } = scrape(modal);
+      
+      let name = mName || pendingConnection?.name || '';
+      let profileUrl = mUrl || pendingConnection?.url || '';
+      let metadata = (mMeta.title ? mMeta : pendingConnection?.metadata) || mMeta;
 
-    if (name || profileUrl) {
-      console.log('[LIWarrior] Reporting sending from modal:', name);
-      setTimeout(() => {
-        if (name && profileUrl) report(name, profileUrl, metadata);
-      }, 500);
-    } else {
-      console.warn('[LIWarrior] Send clicked in modal but no target data found');
+      if (isStudent(metadata.title)) return;
+
+      if (name || profileUrl) {
+        setTimeout(() => report(name, profileUrl, metadata), 500);
+      }
     }
   }, true);
 
   // ------------------------------------------------------------------
-  // Strategy 3: MutationObserver for button state changes
-  // After a successful connection request, LinkedIn changes buttons
-  // to "Pending" or shows a toast. This catches edge cases.
+  // MutationObserver for Toasts
   // ------------------------------------------------------------------
+
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      
-      // Check for raw text node changes (LinkedIn might just recycle a toast element and change its inner text)
-      if (mutation.type === 'characterData') {
-        const text = mutation.target.nodeValue?.toLowerCase() || '';
-        if (text.includes('invitation sent') || text.includes('connection request sent')) {
-          console.log('[LIWarrior] Toast text-mutation detected:', text);
-          let name = pendingConnection?.name || getProfileName(null);
-          let profileUrl = pendingConnection?.url || getProfileUrl(null);
-          if (name) report(name, profileUrl);
-        }
-      }
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            const toastText = node.innerText?.toLowerCase() || '';
+            if (toastText.includes('invitation sent') || toastText.includes('connection request sent')) {
+              console.log('[LIWarrior v2] Toast detected!');
+              const current = scrape(null);
+              let name = pendingConnection?.name || current.name;
+              let profileUrl = pendingConnection?.url || current.url;
+              let metadata = pendingConnection?.metadata || current.meta;
 
-      // Check for newly added nodes (toasts, state changes)
-      for (const node of mutation.addedNodes) {
-        // --- Check for toast/feedback messages ---
-        const toastText = node.textContent?.toLowerCase() || '';
-        if (
-          toastText.includes('invitation sent') ||
-          toastText.includes('connection request sent')
-        ) {
-          console.log('[LIWarrior] Toast detected:', toastText);
-          // A toast confirms the action went through
-          let name = pendingConnection?.name || getProfileName(null);
-          let profileUrl = pendingConnection?.url || getProfileUrl(null);
-          let metadata = pendingConnection?.metadata || getProfileMetadata(null);
-          
-          if (!name) {
-            // Extract from e.g. "invitation sent to junko."
-            const match = toastText.match(/sent to (.+?)(?:\.|$)/i);
-            if (match) name = match[1].trim();
-          }
-
-          if (name) {
-            report(name, profileUrl, metadata);
-          }
-        }
-
-        // Only search for buttons if the node has querySelector (i.e. is an Element)
-        if (node instanceof Element) {
-          // --- Check for "Pending" buttons appearing ---
-          let pendingBtns: HTMLButtonElement[] = [];
-          if (node.tagName === 'BUTTON') {
-            pendingBtns.push(node as HTMLButtonElement);
-          } else {
-            pendingBtns.push(...Array.from(node.querySelectorAll('button')));
-          }
-          for (const btn of pendingBtns) {
-            const label = (btn.getAttribute('aria-label') || '').toLowerCase();
-            const text = (btn.textContent || '').trim().toLowerCase();
-            if (text === 'pending' || label.includes('pending')) {
-              const container = btn.closest(
-                'section, .entity-result, .pvs-profile-actions'
-              );
-              let name = getProfileName(container);
-              let profileUrl = getProfileUrl(container);
-              
-              if (!name && pendingConnection) {
-                 name = pendingConnection.name;
+              if (!name) {
+                const match = node.innerText.match(/sent to (.+?)(?:\.|$)/i);
+                if (match) name = capitalizeName(match[1]);
               }
-              if (!profileUrl && pendingConnection) {
-                 profileUrl = pendingConnection.url;
-              }
-              
-              if (name && profileUrl) report(name, profileUrl);
+              if (name && profileUrl) report(name, profileUrl, metadata);
             }
           }
-        }
-      }
-
-      // Check for attribute changes on buttons (Connect → Pending)
-      if (mutation.type === 'attributes' && mutation.target instanceof HTMLElement) {
-        const el = mutation.target;
-        if (el.tagName === 'BUTTON') {
-          const text = (el.textContent || '').trim().toLowerCase();
-          const label = (el.getAttribute('aria-label') || '').toLowerCase();
-          if (text === 'pending' || label.includes('pending')) {
-            const container = el.closest(
-              'section, .entity-result, .pvs-profile-actions'
-            );
-            let name = getProfileName(container);
-            let profileUrl = getProfileUrl(container);
-            
-            if (!name && pendingConnection) {
-               name = pendingConnection.name;
-            }
-            if (!profileUrl && pendingConnection) {
-               profileUrl = pendingConnection.url;
-            }
-            if (name && profileUrl) report(name, profileUrl);
-          }
-        }
+        });
       }
     }
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    characterData: true,
-    attributeFilter: ['aria-label', 'class', 'disabled'],
-  });
-
+  observer.observe(document.body, { childList: true, subtree: true });
   return observer;
 }

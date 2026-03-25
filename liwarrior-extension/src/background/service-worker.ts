@@ -191,6 +191,13 @@ async function handleProfileScraped(data: Partial<Contact>): Promise<void> {
   }
 }
 
+function capitalizeName(name: string): string {
+  if (!name) return '';
+  return name.trim().split(/\s+/)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
 async function handleConnectionSent(data: { 
   profileUrl: string; 
   name: string;
@@ -198,35 +205,34 @@ async function handleConnectionSent(data: {
   company?: string;
   imageUrl?: string;
 }): Promise<void> {
-  console.log('[LIWarrior][SW] handleConnectionSent called:', data);
-  // Find the contact by profile URL and update status
+  console.log('[LIWarrior v2][SW] handleConnectionSent called:', data);
   const id = generateContactId(data.profileUrl);
-  console.log('[LIWarrior][SW] Generated ID:', id, 'from', data.profileUrl);
   const existing = await db.contacts.get(id);
-  console.log('[LIWarrior][SW] Existing contact?', !!existing);
+  const fullName = capitalizeName(data.name);
 
   if (existing) {
+    console.log('[LIWarrior v2][SW] Updating existing contact:', id);
     await db.contacts.update(id, {
       status: 'request_sent',
+      fullName: fullName || existing.fullName,
       requestSentAt: new Date(),
-      // Update metadata if provided
-      title: data.title || existing.title,
-      company: data.company || existing.company,
-      imageUrl: data.imageUrl || existing.imageUrl,
+      // Update metadata only if we got NEW data (prevent wiping out)
+      title: data.title?.trim() || existing.title,
+      company: data.company?.trim() || existing.company,
+      imageUrl: data.imageUrl?.trim() || existing.imageUrl,
     });
   } else {
-    // Auto-track if they sent a connection request
-    console.log('[LIWarrior][SW] Upserting new contact for', data.name);
-    const nameParts = data.name.split(' ');
+    console.log('[LIWarrior v2][SW] Creating NEW contact for:', fullName);
+    const nameParts = fullName.split(' ');
     await upsertContact({
       id,
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
-      fullName: data.name,
+      fullName: fullName,
       profileUrl: data.profileUrl,
-      title: data.title || '',
-      company: data.company || '',
-      imageUrl: data.imageUrl || '',
+      title: data.title?.trim() || '',
+      company: data.company?.trim() || '',
+      imageUrl: data.imageUrl?.trim() || '',
       status: 'request_sent',
       requestSentAt: new Date(),
     });

@@ -80,6 +80,7 @@ export default function Contacts() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
+              <th className="text-left px-4 py-3 font-medium text-gray-500">Pic</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
@@ -91,6 +92,15 @@ export default function Contacts() {
           <tbody className="divide-y divide-gray-100">
             {filteredContacts.map((contact) => (
               <tr key={contact.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 border">
+                    {contact.imageUrl ? (
+                      <img src={contact.imageUrl} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">N/A</div>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   <a
                     href={contact.profileUrl}
