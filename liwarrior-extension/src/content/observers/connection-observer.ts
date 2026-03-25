@@ -35,7 +35,16 @@ export function observeConnectionActions(
 
     document.getElementById('liwarrior-hub-rescrape')?.addEventListener('click', () => {
       const results = scrape(null);
-      alert(`SCRAPE RESULTS:\nName: ${results.name}\nURL: ${results.url}\nTitle: ${results.meta.title}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\n\nPage Title: ${document.title}`);
+      if (results.name && results.url) {
+        onConnectionSent({ 
+          name: results.name, 
+          profileUrl: results.url, 
+          ...results.meta 
+        });
+        alert(`✅ DATA SAVED TO DASHBOARD!\n\nName: ${results.name}\nTitle: ${results.meta.title || 'NONE'}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\n\nCheck your dashboard now!`);
+      } else {
+        alert(`❌ FAILED TO SCRAPE\n\nName: ${results.name || 'MISSING'}\nURL: ${results.url || 'MISSING'}`);
+      }
     });
 
     document.getElementById('liwarrior-hub-diagnostic')?.addEventListener('click', () => {
