@@ -112,6 +112,9 @@ async function handleMessage(message: ExtensionMessage): Promise<unknown> {
       }
       return { success: true };
 
+    case 'SYNC_CONTACTS':
+      return syncUnassignedContacts();
+
     default:
       console.warn('[LIWarrior] Unknown message type:', (message as any).type);
       return null;
@@ -205,24 +208,35 @@ async function handleConnectionSent(data: {
   company?: string;
   imageUrl?: string;
 }): Promise<void> {
-  console.log('[LIWarrior v2][SW] handleConnectionSent called:', data);
+  console.log('[LIWarrior v3][SW] handleConnectionSent called:', data);
   const id = generateContactId(data.profileUrl);
   const existing = await db.contacts.get(id);
   const fullName = capitalizeName(data.name);
 
+  // Relational Linking: Find company match
+  let companyId = '';
+  if (data.company) {
+    const companies = await db.companies.toArray();
+    const match = companies.find(c => 
+      c.name.toLowerCase().includes(data.company!.toLowerCase()) || 
+      data.company!.toLowerCase().includes(c.name.toLowerCase())
+    );
+    if (match) companyId = match.id;
+  }
+
   if (existing) {
-    console.log('[LIWarrior v2][SW] Updating existing contact:', id);
+    console.log('[LIWarrior v3][SW] Updating existing contact:', id);
     await db.contacts.update(id, {
       status: 'request_sent',
       fullName: fullName || existing.fullName,
       requestSentAt: new Date(),
-      // Update metadata only if we got NEW data (prevent wiping out)
       title: data.title?.trim() || existing.title,
       company: data.company?.trim() || existing.company,
+      companyId: companyId || existing.companyId,
       imageUrl: data.imageUrl?.trim() || existing.imageUrl,
     });
   } else {
-    console.log('[LIWarrior v2][SW] Creating NEW contact for:', fullName);
+    console.log('[LIWarrior v3][SW] Creating NEW contact for:', fullName);
     const nameParts = fullName.split(' ');
     await upsertContact({
       id,
@@ -232,6 +246,7 @@ async function handleConnectionSent(data: {
       profileUrl: data.profileUrl,
       title: data.title?.trim() || '',
       company: data.company?.trim() || '',
+      companyId: companyId || '',
       imageUrl: data.imageUrl?.trim() || '',
       status: 'request_sent',
       requestSentAt: new Date(),
@@ -372,6 +387,31 @@ function extractDepartment(title: string): string {
     return parts[parts.length - 1].trim();
   }
   return title;
+}
+
+async function syncUnassignedContacts(): Promise<{ linked: number }> {
+  console.log('[LIWarrior][SW] Starting retroactive contact sync...');
+  const contacts = await db.contacts.toArray();
+  const companies = await db.companies.toArray();
+  let linkedCount = 0;
+
+  for (const contact of contacts) {
+    if (contact.company) {
+      const match = companies.find(c => 
+        contact.company.toLowerCase().includes(c.name.toLowerCase()) || 
+        c.name.toLowerCase().includes(contact.company.toLowerCase())
+      );
+      if (match && contact.companyId !== match.id) {
+        await db.contacts.update(contact.id, { companyId: match.id });
+        linkedCount++;
+      }
+    }
+  }
+
+  if (linkedCount > 0) {
+    chrome.runtime.sendMessage({ type: 'DB_UPDATED' }).catch(() => {});
+  }
+  return { linked: linkedCount };
 }
 
 // ============================================================

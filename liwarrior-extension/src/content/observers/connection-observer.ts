@@ -257,26 +257,34 @@ export function observeConnectionActions(
       }
     }
 
-    const companySelectors = [
-      '[data-field="experience_company_logo"] img',
-      '.pv-text-details__right-panel [aria-label*="Current company"]',
-      '.entity-result__primary-subtitle',
-      '.artdeco-entity-lockup__subtitle',
-      'button[aria-label*="Current company"]'
-    ];
+    // GUERRILLA STRATEGY: Find company in Experience Section (Deep Scan)
+    if (!meta.company && !context) {
+      const experienceSection = document.getElementById('experience') || 
+                                document.querySelector('section[data-member-id] .pvs-list__outer-container');
+      if (experienceSection) {
+        // Look for the first "Current" job
+        const firstJob = experienceSection.querySelector('.pvs-list__item-no-padding-bottom, .artdeco-list__item');
+        if (firstJob) {
+          const companyEl = firstJob.querySelector('.t-14.t-black--light, .t-14.t-normal span[aria-hidden="true"]');
+          if (companyEl?.textContent?.includes(' · ')) {
+            meta.company = companyEl.textContent.split(' · ')[0].trim();
+          } else if (companyEl?.textContent) {
+            meta.company = companyEl.textContent.trim();
+          }
+        }
+      }
+    }
 
-    for (const selector of companySelectors) {
-      const el = context?.querySelector(selector) || document.querySelector(selector);
-      let val = '';
-      if (el?.getAttribute('aria-label')) val = el.getAttribute('aria-label') || '';
-      else if (el?.textContent) val = el.textContent;
-      
-      if (val.includes(' at ')) {
-         meta.company = val.split(' at ')[1].split('|')[0].split('·')[0].trim();
-         if (meta.company) break;
-      } else if (val.trim() && val.trim().length > 2 && val.trim().length < 50 && !val.toLowerCase().includes('recruiter')) {
-         meta.company = val.trim();
-         break;
+    // FINAL FALLBACK: Domain Search
+    if (!meta.company && !context) {
+      const titleName = document.title.split('|')[0].trim();
+      const allText = document.body.innerText;
+      const companies = ['Meta', 'Facebook', 'Salesforce', 'Bloomberg', 'Google', 'Microsoft', 'Amazon', 'Apple', 'Netflix'];
+      for (const c of companies) {
+        if (allText.includes(` at ${c}`) || allText.includes(` @ ${c}`)) {
+          meta.company = c;
+          break;
+        }
       }
     }
 

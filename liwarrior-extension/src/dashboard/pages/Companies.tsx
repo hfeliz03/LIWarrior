@@ -20,6 +20,11 @@ export default function Companies() {
 
     fetchData();
 
+    // Trigger proactive relational sync/migration
+    chrome.runtime.sendMessage({ type: 'SYNC_CONTACTS' }, (res) => {
+      if (res?.linked > 0) fetchData();
+    });
+
     // Listen for live updates from service worker
     const listener = (message: any) => {
       if (message.type === 'DB_UPDATED') {
@@ -28,6 +33,7 @@ export default function Companies() {
       }
     };
     chrome.runtime.onMessage.addListener(listener);
+    // @ts-ignore - Chrome types may vary in this environment
     return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
@@ -48,9 +54,13 @@ export default function Companies() {
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getCompanyStats = (companyName: string) => {
+  const getCompanyStats = (companyId: string, companyName: string) => {
     const query = companyName.toLowerCase();
     const companyContacts = contacts.filter((c) => {
+      // Priority 1: Direct ID Match (New Relational System)
+      if (c.companyId === companyId) return true;
+      
+      // Priority 2: Fuzzy String Match (Legacy/Retroactive)
       const contactCompany = (c.company || '').toLowerCase().trim();
       if (contactCompany.length < 2) return false;
       return contactCompany.includes(query) || query.includes(contactCompany);
@@ -144,7 +154,7 @@ export default function Companies() {
       {/* Company cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCompanies.map((company) => {
-          const stats = getCompanyStats(company.name);
+          const stats = getCompanyStats(company.id, company.name);
           return (
             <div key={company.id} className="bg-white rounded-xl border p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-3">

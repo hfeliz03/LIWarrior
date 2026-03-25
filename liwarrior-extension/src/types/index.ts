@@ -147,7 +147,7 @@ export interface CommonalityResult {
 
 export type ExtensionMessage =
   | { type: 'PROFILE_SCRAPED'; data: Partial<Contact> }
-  | { type: 'CONNECTION_SENT'; data: { profileUrl: string; name: string } }
+  | { type: 'CONNECTION_SENT'; data: { profileUrl: string; name: string; title?: string; company?: string; imageUrl?: string } }
   | { type: 'CONNECTION_ACCEPTED'; data: { name: string; profileUrl?: string } }
   | { type: 'SEARCH_RESULTS_SCRAPED'; data: Partial<Contact>[] }
   | { type: 'GET_CONTACTS'; filter?: Partial<{ status: ContactStatus; companyId: string }> }
@@ -161,6 +161,8 @@ export type ExtensionMessage =
   | { type: 'GET_TEMPLATES' }
   | { type: 'SAVE_TEMPLATE'; data: Partial<MessageTemplate> }
   | { type: 'TRACK_CONTACT'; data: Partial<Contact> }
+  | { type: 'RE-SCRAPE-PAGE'; data?: { contactId: string } }
+  | { type: 'SYNC_CONTACTS' }
   | { type: 'OPEN_SIDEPANEL'; data?: { contactId: string } };
 
 // Dashboard stats
