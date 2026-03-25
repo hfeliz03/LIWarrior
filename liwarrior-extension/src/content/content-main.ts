@@ -13,9 +13,16 @@ console.log('[LIWarrior] Content script loaded on:', window.location.pathname);
 
 const activeObservers: MutationObserver[] = [];
 
-function sendMessage(message: ExtensionMessage): void {
+function sendMessage(message: any): void {
+  // Check if the extension context is still valid
+  if (!chrome.runtime?.id) {
+    console.warn('[LIWarrior] Extension context invalidated (likely due to extension update/reload). Please refresh the page to continue tracking.');
+    return;
+  }
   chrome.runtime.sendMessage(message).catch((err) => {
-    console.debug('[LIWarrior] Message send failed (service worker may be inactive):', err);
+    // Suppress 'Extension context invalidated' errors from appearing as red GET errors
+    if (err.message?.includes('context invalidated')) return;
+    console.debug('[LIWarrior] Message send failed:', err);
   });
 }
 

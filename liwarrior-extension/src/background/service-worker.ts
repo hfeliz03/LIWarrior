@@ -192,9 +192,12 @@ async function handleProfileScraped(data: Partial<Contact>): Promise<void> {
 }
 
 async function handleConnectionSent(data: { profileUrl: string; name: string }): Promise<void> {
+  console.log('[LIWarrior][SW] handleConnectionSent called:', data);
   // Find the contact by profile URL and update status
   const id = generateContactId(data.profileUrl);
+  console.log('[LIWarrior][SW] Generated ID:', id, 'from', data.profileUrl);
   const existing = await db.contacts.get(id);
+  console.log('[LIWarrior][SW] Existing contact?', !!existing);
 
   if (existing) {
     await db.contacts.update(id, {
@@ -203,6 +206,7 @@ async function handleConnectionSent(data: { profileUrl: string; name: string }):
     });
   } else {
     // Auto-track if they sent a connection request
+    console.log('[LIWarrior][SW] Upserting new contact for', data.name);
     const nameParts = data.name.split(' ');
     await upsertContact({
       id,
@@ -215,6 +219,7 @@ async function handleConnectionSent(data: { profileUrl: string; name: string }):
     });
   }
 
+  console.log('[LIWarrior][SW] Logging activity...');
   await logActivity({
     contactId: id,
     companyId: '',

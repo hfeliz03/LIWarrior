@@ -113,7 +113,16 @@ export function normalizeProfileUrl(url: string): string {
 export function generateContactId(url: string | undefined): string {
   if (!url) return `contact_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   const clean = normalizeProfileUrl(url);
-  return btoa(clean).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+  // UTF-8 safe base64 encoding to handle special characters in URLs/names
+  try {
+    const utf8Safe = btoa(encodeURIComponent(clean).replace(/%([0-9A-F]{2})/g, (match, p1) => 
+      String.fromCharCode(parseInt(p1, 16))
+    ));
+    return utf8Safe.replace(/[^a-zA-Z0-9]/g, '');
+  } catch (e) {
+    // Fallback if btoa fails - use full cleaned URL sanitized for ID usage
+    return clean.replace(/[^a-zA-Z0-9]/g, '');
+  }
 }
 
 export async function upsertContact(contact: Partial<Contact>): Promise<string> {
@@ -197,16 +206,24 @@ export async function getActivityLog(contactId?: string): Promise<ActivityLog[]>
 export async function getStats() {
   const allContacts = await db.contacts.toArray();
   const total = allContacts.length;
-  const requestsSent = allContacts.filter(c => c.status !== 'discovered').length;
+  
+  // Count anyone whose status moved beyond 'discovered'
+  const requestsSent = allContacts.filter(c => 
+    !['discovered', 'untracked'].includes(c.status)
+  ).length;
+
   const accepted = allContacts.filter(c =>
     ['accepted', 'messaged', 'replied', 'meeting_set'].includes(c.status)
   ).length;
+
   const messaged = allContacts.filter(c =>
     ['messaged', 'replied', 'meeting_set'].includes(c.status)
   ).length;
+
   const replied = allContacts.filter(c =>
     ['replied', 'meeting_set'].includes(c.status)
   ).length;
+
   const meetings = allContacts.filter(c => c.status === 'meeting_set').length;
   const companies = await db.companies.count();
 
