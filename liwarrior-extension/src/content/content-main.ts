@@ -9,20 +9,20 @@ import type { ExtensionMessage, Contact } from '@/types';
 // Runs on linkedin.com pages. All observers are READ-ONLY.
 // ============================================================
 
-console.log('[LIWarrior] Content script loaded on:', window.location.pathname);
+console.log('[LIWarrior v2] Content script loaded on:', window.location.pathname);
 
 const activeObservers: MutationObserver[] = [];
 
 function sendMessage(message: any): void {
   // Check if the extension context is still valid
   if (!chrome.runtime?.id) {
-    console.warn('[LIWarrior] Extension context invalidated (likely due to extension update/reload). Please refresh the page to continue tracking.');
+    console.warn('[LIWarrior v2] Extension context invalidated. Please refresh the page.');
     return;
   }
   chrome.runtime.sendMessage(message).catch((err) => {
     // Suppress 'Extension context invalidated' errors from appearing as red GET errors
     if (err.message?.includes('context invalidated')) return;
-    console.debug('[LIWarrior] Message send failed:', err);
+    console.debug('[LIWarrior v2] Message send failed:', err);
   });
 }
 

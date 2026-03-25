@@ -40,7 +40,7 @@ export default function Pipeline() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Networking Pipeline</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Networking Pipeline <span className="text-red-500 font-mono text-base">[v2]</span></h2>
         <p className="text-gray-500 mt-1">
           Track your connections through every stage of the networking process.
         </p>
@@ -49,9 +49,9 @@ export default function Pipeline() {
       {/* Stats bar */}
       {stats && (
         <div className="flex gap-4 mb-6">
-          <div className="bg-white rounded-xl border px-4 py-3 flex-1 text-center">
-            <div className="text-2xl font-bold text-li-blue">{stats.totalContacts}</div>
-            <div className="text-xs text-gray-500">Total Contacts</div>
+          <div className="bg-red-600 rounded-xl border px-4 py-3 flex-1 text-center shadow-lg transform scale-105">
+            <div className="text-2xl font-bold text-white">{stats.totalContacts}</div>
+            <div className="text-xs text-white">Total Contacts [V2]</div>
           </div>
           <div className="bg-white rounded-xl border px-4 py-3 flex-1 text-center">
             <div className="text-2xl font-bold text-green-600">{stats.acceptanceRate}%</div>
