@@ -4,7 +4,9 @@ import type { TargetCompany, Contact } from '@/types';
 export default function Companies() {
   const [companies, setCompanies] = useState<TargetCompany[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [newCompany, setNewCompany] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState('');
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: 'GET_COMPANIES' }, (res) => {
@@ -16,16 +18,21 @@ export default function Companies() {
   }, []);
 
   const addCompany = () => {
-    if (!newCompany.trim()) return;
+    if (!newCompanyName.trim()) return;
     const companyData = {
-      name: newCompany.trim(),
-      linkedInUrl: `https://www.linkedin.com/company/${newCompany.trim().toLowerCase().replace(/\s+/g, '-')}`,
+      name: newCompanyName.trim(),
+      linkedInUrl: `https://www.linkedin.com/company/${newCompanyName.trim().toLowerCase().replace(/\s+/g, '-')}`,
     };
     chrome.runtime.sendMessage({ type: 'ADD_COMPANY', data: companyData }, (id) => {
-      setCompanies((prev) => [...prev, { ...companyData, id, logoUrl: '', addedAt: new Date() } as TargetCompany]);
-      setNewCompany('');
+      setCompanies((prev) => [{ ...companyData, id, logoUrl: '', addedAt: new Date() } as TargetCompany, ...prev]);
+      setNewCompanyName('');
+      setSearchTerm('');
     });
   };
+
+  const filteredCompanies = companies.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getCompanyStats = (companyName: string) => {
     const companyContacts = contacts.filter(
@@ -59,27 +66,67 @@ export default function Companies() {
         </p>
       </div>
 
-      {/* Add company */}
-      <div className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newCompany}
-          onChange={(e) => setNewCompany(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addCompany()}
-          placeholder="Add a company (e.g., Microsoft)"
-          className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue"
-        />
-        <button
-          onClick={addCompany}
-          className="bg-li-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-li-dark transition-colors"
-        >
-          Add Company
-        </button>
+      {/* LinkedIn-style Searcher */}
+      <div className="relative mb-6">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setNewCompanyName(e.target.value);
+                setIsDropdownOpen(e.target.value.length > 0);
+              }}
+              onFocus={() => setIsDropdownOpen(searchTerm.length > 0)}
+              placeholder="Search or add a company (e.g., Bloomberg)"
+              className="w-full border rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue bg-white"
+            />
+            
+            {/* Autocomplete Dropdown */}
+            {isDropdownOpen && filteredCompanies.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-xl mt-1 z-50 overflow-hidden">
+                {filteredCompanies.slice(0, 5).map(company => (
+                  <div 
+                    key={company.id}
+                    onClick={() => {
+                      chrome.tabs.create({ url: company.linkedInUrl });
+                      setIsDropdownOpen(false);
+                      setSearchTerm('');
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-0 transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-li-blue/10 rounded flex items-center justify-center text-xs font-bold text-li-blue">
+                      {company.name[0]}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">{company.name}</div>
+                      <div className="text-[10px] text-gray-400">Jump to Company Profile ↗</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={addCompany}
+            className="bg-li-blue text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-li-dark transition-all shadow-md active:scale-95 disabled:opacity-50"
+            disabled={!searchTerm.trim() || companies.some(c => c.name.toLowerCase() === searchTerm.toLowerCase())}
+          >
+            Add New
+          </button>
+        </div>
+        {searchTerm.length > 0 && filteredCompanies.length === 0 && (
+          <p className="text-[10px] text-gray-400 mt-1 ml-1">
+            ✨ Tip: Click "Add New" to start tracking "{searchTerm}"
+          </p>
+        )}
       </div>
 
       {/* Company cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {companies.map((company) => {
+        {filteredCompanies.map((company) => {
           const stats = getCompanyStats(company.name);
           return (
             <div key={company.id} className="bg-white rounded-xl border p-4 hover:shadow-md transition-shadow">
