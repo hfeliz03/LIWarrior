@@ -49,11 +49,15 @@ export function observeConnectionActions(
   ensureDebugHub();
   setInterval(ensureDebugHub, 3000);
 
-  // Helper: Capitalize first letters of a name and clean degrees
+  // Helper: Capitalize first letters of a name and clean degrees/pronouns
   function capitalizeName(name: string): string {
     if (!name) return '';
-    // Strip common degrees (MBA, PhD, etc.) if they follow a comma
-    const clean = name.split(',')[0].trim();
+    // Strip common degrees, certifications, and parentheticals
+    let clean = name.split(',')[0] // Degrees after comma
+                    .split('|')[0] // Title pipes
+                    .replace(/\(.+?\)/g, '') // Remove (Maiden Name) or (Pronouns)
+                    .trim();
+    
     return clean.split(/\s+/)
       .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
@@ -147,7 +151,19 @@ export function observeConnectionActions(
       }
     }
 
-    // GUERRILLA STRATEGY: Find biggest circular image
+    // GUERRILLA STRATEGY: Find by source pattern (LinkedIn standard)
+    if (!meta.imageUrl && !context) {
+      const allImgs = Array.from(document.querySelectorAll('img'));
+      for (const img of allImgs) {
+        const src = img.src || '';
+        if (src.includes('profile-displayphoto') || src.includes('profile-displayphoto-shrink')) {
+           meta.imageUrl = src;
+           break;
+        }
+      }
+    }
+
+    // GUERRILLA STRATEGY: Find biggest circular image (Fallback)
     if (!meta.imageUrl && !context) {
       const imgs = Array.from(document.querySelectorAll('img'));
       for (const img of imgs) {
@@ -176,6 +192,26 @@ export function observeConnectionActions(
       if (el?.textContent?.trim()) {
         meta.title = el.textContent.trim();
         break;
+      }
+    }
+
+    // GUERRILLA STRATEGY: Neighborhood search
+    if (!meta.title && !context) {
+      const titleName = document.title.split('|')[0].trim();
+      const elements = Array.from(document.querySelectorAll('div, span, p'));
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        if (el.textContent?.includes(titleName.split(' ')[0]) && parseFloat(window.getComputedStyle(el).fontSize) > 20) {
+           // Success! The title is usually 1-3 elements after the name in the DOM
+           for (let j = 1; j <= 5; j++) {
+             const neighbor = elements[i + j];
+             if (neighbor?.textContent?.trim().length > 10 && !neighbor.textContent.includes(titleName.split(' ')[0])) {
+               meta.title = neighbor.textContent.trim();
+               break;
+             }
+           }
+           break;
+        }
       }
     }
 
