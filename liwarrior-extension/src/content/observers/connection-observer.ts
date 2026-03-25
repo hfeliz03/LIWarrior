@@ -81,10 +81,19 @@ export function observeConnectionActions(
       if (el?.textContent?.trim()) return capitalizeName(el?.textContent?.trim());
     }
 
-    // NEW Fallback: On a profile page, the <title> often has the name "Name | LinkedIn"
+    // GUERRILLA STRATEGY: Search for largest font element on profile
     if (!context && window.location.pathname.startsWith('/in/')) {
-       const title = document.title;
-       if (title && title.includes('|')) return capitalizeName(title.split('|')[0]);
+       const titleName = document.title.split('|')[0].trim();
+       const elements = Array.from(document.querySelectorAll('div, span, p'));
+       for (const el of elements) {
+         const style = window.getComputedStyle(el);
+         const fontSize = parseFloat(style.fontSize);
+         if (fontSize > 22 && el.textContent?.includes(titleName.split(' ')[0])) {
+            console.log('[LIWarrior v2.4] Guerrilla Name Found:', el.textContent.trim());
+            return capitalizeName(el.textContent.trim());
+         }
+       }
+       return capitalizeName(titleName); // Tab title fallback
     }
 
     const ariaEl = context?.querySelector('[aria-label*="Invite"], [aria-label*="View profile"]');
@@ -118,15 +127,13 @@ export function observeConnectionActions(
       '.pv-top-card-layout__image img',
       '.profile-photo-edit__preview',
       'img[class*="profile-displayphoto"]',
-      '.entity-result__image img',
-      '.presence-entity__image img',
-      '.ivm-view-attr__img--centered img',
-      '.ivm-image-view-model img',
-      '.artdeco-entity-lockup__image img',
-      '.update-components-actor__avatar img',
+      'img[class*="EntityPhoto"]',
+      // User-discovered obfuscated classes
+      '._4b8f1764', 
+      '.ada1fa5f', 
+      '._888a2d2d',
       'img[class*="actor__avatar"]',
-      'img[class*="pv-top-card"]',
-      'img[class*="EntityPhoto"]'
+      'img[class*="pv-top-card"]'
     ];
     
     for (const selector of imgSelectors) {
@@ -136,6 +143,20 @@ export function observeConnectionActions(
         if (src && !src.includes('data:image') && !src.includes('ghost')) {
           meta.imageUrl = src;
           break;
+        }
+      }
+    }
+
+    // GUERRILLA STRATEGY: Find biggest circular image
+    if (!meta.imageUrl && !context) {
+      const imgs = Array.from(document.querySelectorAll('img'));
+      for (const img of imgs) {
+        if (img.width > 120 && img.width < 300) {
+          const style = window.getComputedStyle(img);
+          if (style.borderRadius === '50%' || parseFloat(style.borderRadius) > 50) {
+            meta.imageUrl = img.src;
+            break;
+          }
         }
       }
     }
