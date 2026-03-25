@@ -50,9 +50,11 @@ export default function Companies() {
 
   const getCompanyStats = (companyName: string) => {
     const query = companyName.toLowerCase();
-    const companyContacts = contacts.filter(
-      (c) => c.company?.toLowerCase().includes(query) || query.includes(c.company?.toLowerCase() || '')
-    );
+    const companyContacts = contacts.filter((c) => {
+      const contactCompany = (c.company || '').toLowerCase().trim();
+      if (contactCompany.length < 2) return false;
+      return contactCompany.includes(query) || query.includes(contactCompany);
+    });
     return {
       total: companyContacts.length,
       connected: companyContacts.filter((c) =>
