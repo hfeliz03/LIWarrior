@@ -162,19 +162,22 @@ function ContactCard({
   return (
     <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-2">
-        {contact.imageUrl ? (
-          <img 
-            src={contact.imageUrl} 
-            alt={contact.fullName}
-            className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-100"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div className={`w-8 h-8 bg-li-blue/10 rounded-full flex items-center justify-center text-xs font-bold text-li-blue flex-shrink-0 ${contact.imageUrl ? 'hidden' : ''}`}>
-          {contact.firstName[0] || '?'}
+        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-li-blue/10 flex items-center justify-center">
+          {contact.imageUrl ? (
+            <img 
+              src={contact.imageUrl} 
+              alt={contact.fullName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // If image fails, hide it and just keep the background
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <span className="text-xs font-bold text-li-blue">
+              {contact.firstName?.[0] || contact.fullName?.[0] || '?'}
+            </span>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <a

@@ -45,9 +45,31 @@ export function observeConnectionActions(
     if (searchName?.textContent?.trim()) return searchName.textContent.trim();
 
     // Fallback: Use the text from the profile link itself
+    // Strategy A: Explicit name elements
+    const nameSelectors = [
+      'h1.text-heading-xlarge',
+      '.entity-result__title-text a span[aria-hidden="true"]',
+      '.pv-text-details__left-panel h1',
+      '.artdeco-entity-lockup__title'
+    ];
+    
+    for (const selector of nameSelectors) {
+      const el = context ? context.querySelector(selector) : document.querySelector(selector);
+      if (el?.textContent?.trim()) return capitalizeName(el?.textContent?.trim());
+    }
+
+    // Strategy B: Aria-label parsing
+    const ariaEl = context?.querySelector('[aria-label*="Invite"], [aria-label*="View profile"]');
+    if (ariaEl) {
+      const label = ariaEl.getAttribute('aria-label') || '';
+      const name = parseNameFromAriaLabel(label);
+      if (name) return name;
+    }
+
+    // Strategy C: Text in profile link
     const profileLink = context?.querySelector('.app-aware-link[href*="/in/"]');
     if (profileLink?.textContent?.trim()) {
-      return profileLink.textContent.trim().split('\n')[0].trim();
+      return capitalizeName(profileLink.textContent.trim().split('\n')[0].trim());
     }
 
     return '';
@@ -55,22 +77,80 @@ export function observeConnectionActions(
 
   function getProfileMetadata(context?: Element | null): { title: string; company: string; imageUrl: string } {
     const meta = { title: '', company: '', imageUrl: '' };
-    if (!context) {
-      // Try global selectors if no context
-      meta.title = document.querySelector('.text-body-medium.break-words')?.textContent?.trim() || '';
-      meta.imageUrl = (document.querySelector('.pv-top-card-profile-picture__image') as HTMLImageElement)?.src || '';
-      meta.company = document.querySelector('[data-field="experience_company_logo"] img, .pv-text-details__right-panel [aria-label*="Current company"]')?.getAttribute('aria-label') || '';
-      return meta;
+    
+    // 1. Image Selectors (LinkedIn has many variations including lazy-loading)
+    const imgSelectors = [
+      '.pv-top-card-profile-picture__image',
+      '.entity-result__image img',
+      '.presence-entity__image img',
+      '.ivm-view-attr__img--centered img',
+      '.ivm-image-view-model img',
+      '.artdeco-entity-lockup__image img',
+      '.update-components-actor__avatar img',
+      'img[class*="actor__avatar"]',
+      'img[class*="entity-lockup__image"]'
+    ];
+    
+    for (const selector of imgSelectors) {
+      const img = (context?.querySelector(selector) || document.querySelector(selector)) as HTMLImageElement;
+      if (img) {
+        // Try all possible image source attributes
+        const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-delayed-url');
+        if (src && !src.includes('data:image') && !src.includes('ghost')) {
+          meta.imageUrl = src;
+          break;
+        }
+      }
     }
 
-    // Search results or sidebar cards
-    meta.title = context.querySelector('.entity-result__primary-subtitle, .text-body-small')?.textContent?.trim() || '';
-    meta.imageUrl = (context.querySelector('.entity-result__image img, .presence-entity__image img') as HTMLImageElement)?.src || '';
+    // 2. Title / Headline Selectors
+    const titleSelectors = [
+      'h1 + .text-body-medium', 
+      '.text-body-medium.break-words',
+      '.entity-result__primary-subtitle',
+      '.artdeco-entity-lockup__subtitle',
+      '.text-body-small.t-black--light',
+      '.t-14.t-black.t-normal',
+      '[data-field="headline"]',
+      '.pv-text-details__left-panel .text-body-medium'
+    ];
     
-    // Attempt to find company from search sub-titles
-    const subtitle = context.querySelector('.entity-result__primary-subtitle')?.textContent || '';
-    if (subtitle.includes(' at ')) {
-      meta.company = subtitle.split(' at ')[1].split('|')[0].trim();
+    for (const selector of titleSelectors) {
+      const el = context?.querySelector(selector) || document.querySelector(selector);
+      if (el?.textContent?.trim()) {
+        meta.title = el.textContent.trim();
+        break;
+      }
+    }
+
+    // 3. Company Extraction logic
+    const companySelectors = [
+      '[data-field="experience_company_logo"] img',
+      '.pv-text-details__right-panel [aria-label*="Current company"]',
+      '.pv-entity__secondary-title',
+      '.entity-result__primary-subtitle',
+      '.artdeco-entity-lockup__subtitle',
+      'button[aria-label*="Current company"]'
+    ];
+
+    for (const selector of companySelectors) {
+      const el = context?.querySelector(selector) || document.querySelector(selector);
+      let val = '';
+      if (el?.getAttribute('aria-label')) val = el.getAttribute('aria-label') || '';
+      else if (el?.textContent) val = el.textContent;
+      
+      if (val.includes(' at ')) {
+         const parts = val.split(' at ');
+         meta.company = (parts[1] || '').split('|')[0].split('·')[0].trim();
+         if (meta.company) break;
+      } else if (val.trim()) {
+         const clean = val.trim();
+         // Basic filter to avoid titles being counted as companies
+         if (clean.length > 2 && clean.length < 50 && !clean.toLowerCase().includes('recruiter')) {
+           meta.company = clean;
+           break;
+         }
+      }
     }
 
     return meta;
@@ -85,12 +165,17 @@ export function observeConnectionActions(
     return studentKeywords.some(keyword => lower.includes(keyword));
   }
 
+  function capitalizeName(name: string): string {
+    if (!name) return '';
+    return name.split(' ')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   function parseNameFromAriaLabel(label: string): string {
     const invite = label.match(/^Invite\s+(.+?)\s+to connect/i);
-    if (invite) return invite[1];
-    const pending = label.match(/^(.+?)\s+is now/i);
-    if (pending) return pending[1];
-    return '';
+    if (invite) return capitalizeName(invite[1]);
+    return capitalizeName(label);
   }
 
   function getProfileUrl(context?: Element | null): string {
@@ -306,7 +391,7 @@ export function observeConnectionActions(
               if (name && profileUrl) report(name, profileUrl);
             }
           }
-        } // <--- Added missing closing brace
+        }
       }
 
       // Check for attribute changes on buttons (Connect → Pending)
