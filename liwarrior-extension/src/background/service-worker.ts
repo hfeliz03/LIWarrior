@@ -246,6 +246,9 @@ async function handleConnectionSent(data: {
     timestamp: new Date(),
     details: `Connection request sent to ${data.name}`,
   });
+
+  // Broadcast update to all dashboard tabs
+  chrome.runtime.sendMessage({ type: 'DB_UPDATED' }).catch(() => {});
 }
 
 async function handleConnectionAccepted(data: { name: string; profileUrl?: string }): Promise<void> {
@@ -288,6 +291,9 @@ async function handleConnectionAccepted(data: { name: string; profileUrl?: strin
       timestamp: new Date(),
       details: `${contact.fullName} accepted connection request`,
     });
+
+    // Broadcast update to all dashboard tabs
+    chrome.runtime.sendMessage({ type: 'DB_UPDATED' }).catch(() => {});
   }
 }
 

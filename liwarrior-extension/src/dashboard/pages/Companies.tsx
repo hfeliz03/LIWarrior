@@ -9,12 +9,26 @@ export default function Companies() {
   const [newCompanyName, setNewCompanyName] = useState('');
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'GET_COMPANIES' }, (res) => {
-      if (Array.isArray(res)) setCompanies(res);
-    });
-    chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (res) => {
-      if (Array.isArray(res)) setContacts(res);
-    });
+    const fetchData = () => {
+      chrome.runtime.sendMessage({ type: 'GET_COMPANIES' }, (res) => {
+        if (Array.isArray(res)) setCompanies(res);
+      });
+      chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (res) => {
+        if (Array.isArray(res)) setContacts(res);
+      });
+    };
+
+    fetchData();
+
+    // Listen for live updates from service worker
+    const listener = (message: any) => {
+      if (message.type === 'DB_UPDATED') {
+        console.log('[LIWarrior] Live update received, refreshing data...');
+        fetchData();
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
   const addCompany = () => {
@@ -35,8 +49,9 @@ export default function Companies() {
   );
 
   const getCompanyStats = (companyName: string) => {
+    const query = companyName.toLowerCase();
     const companyContacts = contacts.filter(
-      (c) => c.company?.toLowerCase() === companyName.toLowerCase()
+      (c) => c.company?.toLowerCase().includes(query) || query.includes(c.company?.toLowerCase() || '')
     );
     return {
       total: companyContacts.length,
