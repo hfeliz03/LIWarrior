@@ -191,7 +191,13 @@ async function handleProfileScraped(data: Partial<Contact>): Promise<void> {
   }
 }
 
-async function handleConnectionSent(data: { profileUrl: string; name: string }): Promise<void> {
+async function handleConnectionSent(data: { 
+  profileUrl: string; 
+  name: string;
+  title?: string;
+  company?: string;
+  imageUrl?: string;
+}): Promise<void> {
   console.log('[LIWarrior][SW] handleConnectionSent called:', data);
   // Find the contact by profile URL and update status
   const id = generateContactId(data.profileUrl);
@@ -203,6 +209,10 @@ async function handleConnectionSent(data: { profileUrl: string; name: string }):
     await db.contacts.update(id, {
       status: 'request_sent',
       requestSentAt: new Date(),
+      // Update metadata if provided
+      title: data.title || existing.title,
+      company: data.company || existing.company,
+      imageUrl: data.imageUrl || existing.imageUrl,
     });
   } else {
     // Auto-track if they sent a connection request
@@ -214,6 +224,9 @@ async function handleConnectionSent(data: { profileUrl: string; name: string }):
       lastName: nameParts.slice(1).join(' ') || '',
       fullName: data.name,
       profileUrl: data.profileUrl,
+      title: data.title || '',
+      company: data.company || '',
+      imageUrl: data.imageUrl || '',
       status: 'request_sent',
       requestSentAt: new Date(),
     });

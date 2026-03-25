@@ -80,7 +80,13 @@ const connObs = observeConnectionActions((event) => {
   console.log('[LIWarrior] Connection request sent to:', event.name);
   sendMessage({
     type: 'CONNECTION_SENT',
-    data: { name: event.name, profileUrl: event.profileUrl },
+    data: { 
+      name: event.name, 
+      profileUrl: event.profileUrl,
+      title: event.title,
+      company: event.company,
+      imageUrl: event.imageUrl
+    },
   });
 });
 // Note: We don't add connObs to `activeObservers` because we never want to disconnect it
