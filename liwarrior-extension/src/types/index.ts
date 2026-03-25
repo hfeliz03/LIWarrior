@@ -56,7 +56,11 @@ export interface UserProfile {
   volunteerOrgs: string[];
   targetRoles: string[];
   targetLevel: string;
-  calendarLink: string;
+  calendarLinks: {
+    min15?: string;
+    min30?: string;
+    hr1?: string;
+  };
   updatedAt: Date;
 }
 

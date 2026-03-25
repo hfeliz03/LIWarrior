@@ -61,7 +61,7 @@ export async function saveUserProfile(profile: Partial<UserProfile>): Promise<vo
       volunteerOrgs: [],
       targetRoles: [],
       targetLevel: '',
-      calendarLink: '',
+      calendarLinks: {},
       updatedAt: new Date(),
       ...profile,
     } as UserProfile);
@@ -101,12 +101,25 @@ export async function getContacts(filter?: {
   return db.contacts.reverse().sortBy('discoveredAt');
 }
 
+export function normalizeProfileUrl(url: string): string {
+  if (!url) return '';
+  // Remove query params, hash, trailing slashes
+  let clean = url.split('?')[0].split('#')[0].replace(/\/+$/, '');
+  // Force https://www.linkedin.com/in/ format (strip locale subdomains like uk.linkedin.com)
+  clean = clean.replace(/https?:\/\/[a-z]{2,3}\.linkedin\.com/, 'https://www.linkedin.com');
+  return clean.toLowerCase();
+}
+
+export function generateContactId(url: string | undefined): string {
+  if (!url) return `contact_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const clean = normalizeProfileUrl(url);
+  return btoa(clean).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+}
+
 export async function upsertContact(contact: Partial<Contact>): Promise<string> {
   if (!contact.id) {
-    // Generate ID from profile URL or name
-    contact.id = contact.profileUrl
-      ? btoa(contact.profileUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)
-      : `contact_${Date.now()}`;
+    // Generate ID from normalized profile URL or fallback
+    contact.id = generateContactId(contact.profileUrl);
   }
 
   const existing = await db.contacts.get(contact.id);

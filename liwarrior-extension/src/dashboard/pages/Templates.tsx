@@ -52,7 +52,7 @@ export default function Templates() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-semibold text-blue-800 mb-2">Available Variables</h3>
         <div className="flex flex-wrap gap-2">
-          {['{firstName}', '{lastName}', '{company}', '{department}', '{sharedValue}', '{icebreaker}', '{calendarLink}'].map((v) => (
+          {['{firstName}', '{lastName}', '{company}', '{department}', '{sharedValue}', '{icebreaker}', '{calendarBlock}'].map((v) => (
             <code key={v} className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-mono">
               {v}
             </code>

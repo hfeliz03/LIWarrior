@@ -19,8 +19,8 @@ function sendMessage(message: ExtensionMessage): void {
   });
 }
 
-function initObservers(): void {
-  // Clean up any existing observers
+function initPageObservers(): void {
+  // Clean up any existing page-specific observers
   activeObservers.forEach(obs => obs.disconnect());
   activeObservers.length = 0;
 
@@ -62,28 +62,31 @@ function initObservers(): void {
     activeObservers.push(obs);
   }
 
-  // 4. Always watch for connection button state changes
-  const connObs = observeConnectionActions((event) => {
-    console.log('[LIWarrior] Connection request sent to:', event.name);
-    sendMessage({
-      type: 'CONNECTION_SENT',
-      data: { name: event.name, profileUrl: event.profileUrl },
-    });
-  });
-  activeObservers.push(connObs);
+  // 4. Note: Connection Actions are observed globally, not per-page.
 }
 
-// Initialize on page load
-initObservers();
+// Initialize page-specific observers
+initPageObservers();
 
-// LinkedIn is a SPA — watch for URL changes to re-init observers
+// Initialize global connection observer ONCE
+const connObs = observeConnectionActions((event) => {
+  console.log('[LIWarrior] Connection request sent to:', event.name);
+  sendMessage({
+    type: 'CONNECTION_SENT',
+    data: { name: event.name, profileUrl: event.profileUrl },
+  });
+});
+// Note: We don't add connObs to `activeObservers` because we never want to disconnect it
+// on SPA URL changes. It watches document.body permanently.
+
+// LinkedIn is a SPA — watch for URL changes to re-init page-specific observers
 let lastUrl = window.location.href;
 const urlObserver = new MutationObserver(() => {
   if (window.location.href !== lastUrl) {
     lastUrl = window.location.href;
     console.log('[LIWarrior] URL changed to:', window.location.pathname);
     // Wait for new page content to load
-    setTimeout(initObservers, 1500);
+    setTimeout(initPageObservers, 1500);
   }
 });
 

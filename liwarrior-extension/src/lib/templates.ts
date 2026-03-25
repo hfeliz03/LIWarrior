@@ -4,7 +4,7 @@ import type { MessageTemplate } from '@/types';
 // Built-in Message Templates
 // Organized by: message type × contact role × commonality
 // Variables: {firstName}, {company}, {department}, {sharedValue},
-//            {icebreaker}, {calendarLink}, {userFirstName}
+//            {icebreaker}, {calendarBlock}, {userFirstName}
 // ============================================================
 
 export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesReceived'>[] = [
@@ -69,7 +69,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'university',
-    body: `Hey {firstName}! {icebreaker} I've been really impressed by what {company} is building. Would you be open to a quick 15-min coffee chat? I'd love to hear about your experience and any advice for someone looking to break in. Happy to work around your schedule!`,
+    body: `Hey {firstName}! {icebreaker} I've been really impressed by what {company} is building. Would you be open to a quick 15-min coffee chat? I'd love to hear about your experience and any advice for someone looking to break in. Happy to work around your schedule!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -78,7 +78,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'language',
-    body: `Hey {firstName}! {icebreaker} I'm really interested in the work {company} is doing. Would you have a few minutes for a quick virtual coffee? I'd love to hear about your path there and what the team looks for. Totally flexible on timing!`,
+    body: `Hey {firstName}! {icebreaker} I'm really interested in the work {company} is doing. Would you have a few minutes for a quick virtual coffee? I'd love to hear about your path there and what the team looks for. Totally flexible on timing!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -87,7 +87,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'last_name',
-    body: `Hey {firstName}! {icebreaker} On a more serious note, I've been eyeing {company} and your role really caught my eye. Would you be down for a quick 15-min chat? I'd love to hear about your experience. Happy to work around your schedule!`,
+    body: `Hey {firstName}! {icebreaker} On a more serious note, I've been eyeing {company} and your role really caught my eye. Would you be down for a quick 15-min chat? I'd love to hear about your experience. Happy to work around your schedule!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -96,7 +96,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'company',
-    body: `Hey {firstName}! {icebreaker} I'm looking to make a similar move and {company} is at the top of my list. Would you be open to a quick coffee chat about how you made the transition? I'd really value your perspective. Totally flexible on timing!`,
+    body: `Hey {firstName}! {icebreaker} I'm looking to make a similar move and {company} is at the top of my list. Would you be open to a quick coffee chat about how you made the transition? I'd really value your perspective. Totally flexible on timing!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -105,7 +105,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'location',
-    body: `Hey {firstName}! {icebreaker} I've been following what {company} is building and I'm really interested. Would you be open to a quick 15-min chat? Would love to hear about your experience on the team. Happy to work around your schedule!`,
+    body: `Hey {firstName}! {icebreaker} I've been following what {company} is building and I'm really interested. Would you be open to a quick 15-min chat? Would love to hear about your experience on the team. Happy to work around your schedule!{calendarBlock}`,
     isCustom: false,
   },
 
@@ -117,7 +117,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'recruiter',
     commonalityType: 'none',
-    body: `Hey {firstName}, thanks for connecting! I've been following what {company} is building and I'm really impressed. Would you be open to a quick 15-min virtual coffee? I'd love to hear about what the team is looking for and any advice you might have. Happy to work around your schedule!`,
+    body: `Hey {firstName}, thanks for connecting! I've been following what {company} is building and I'm really impressed. Would you be open to a quick 15-min virtual coffee? I'd love to hear about what the team is looking for and any advice you might have. Happy to work around your schedule!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -126,7 +126,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'hiring_manager',
     commonalityType: 'none',
-    body: `Hey {firstName}, really appreciate the connection! I've been following the work your team at {company} is doing and it's exciting. Would you have a few minutes for a quick chat? I'd love to learn about what you look for in candidates and any advice you'd share. Totally flexible on timing!`,
+    body: `Hey {firstName}, really appreciate the connection! I've been following the work your team at {company} is doing and it's exciting. Would you have a few minutes for a quick chat? I'd love to learn about what you look for in candidates and any advice you'd share. Totally flexible on timing!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -135,7 +135,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'team_member',
     commonalityType: 'none',
-    body: `Hey {firstName}, thanks for accepting! I'm a big fan of what {company} is building. I'm exploring opportunities in this space and your team caught my eye. If you ever have a few minutes for a quick chat, I'd really appreciate the chance to learn from your perspective. No pressure at all!`,
+    body: `Hey {firstName}, thanks for accepting! I'm a big fan of what {company} is building. I'm exploring opportunities in this space and your team caught my eye. If you ever have a few minutes for a quick chat, I'd really appreciate the chance to learn from your perspective. No pressure at all!{calendarBlock}`,
     isCustom: false,
   },
   {
@@ -144,7 +144,7 @@ export const DEFAULT_TEMPLATES: Omit<MessageTemplate, 'timesUsed' | 'repliesRece
     type: 'initial_message',
     targetRole: 'any',
     commonalityType: 'none',
-    body: `Hey {firstName}, thanks for connecting! I've been really interested in {company} and would love to learn more about the team. Would you be open to a quick 15-min virtual coffee? Happy to work around your schedule!`,
+    body: `Hey {firstName}, thanks for connecting! I've been really interested in {company} and would love to learn more about the team. Would you be open to a quick 15-min virtual coffee? Happy to work around your schedule!{calendarBlock}`,
     isCustom: false,
   },
 

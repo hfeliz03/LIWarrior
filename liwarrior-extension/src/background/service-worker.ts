@@ -1,4 +1,4 @@
-import { db, upsertContact, getContacts, getCompanies, getUserProfile, saveUserProfile, addCompany, getStats, getTemplates, logActivity } from '@/lib/db';
+import { db, upsertContact, getContacts, getCompanies, getUserProfile, saveUserProfile, addCompany, getStats, getTemplates, logActivity, generateContactId } from '@/lib/db';
 import { findCommonalities, calculateCommonalityScore } from '@/lib/commonality';
 import { DEFAULT_TEMPLATES, findBestTemplate, fillTemplate } from '@/lib/templates';
 import type { ExtensionMessage, Contact, MessageTemplate, UserProfile } from '@/types';
@@ -193,7 +193,7 @@ async function handleProfileScraped(data: Partial<Contact>): Promise<void> {
 
 async function handleConnectionSent(data: { profileUrl: string; name: string }): Promise<void> {
   // Find the contact by profile URL and update status
-  const id = btoa(data.profileUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+  const id = generateContactId(data.profileUrl);
   const existing = await db.contacts.get(id);
 
   if (existing) {
@@ -297,6 +297,19 @@ async function generateMessage(
     return { draft: '', template: 'none' };
   }
 
+  // Build calendar links block
+  const links = userProfile?.calendarLinks;
+  let calendarBlock = '';
+  if (links) {
+    const parts: string[] = [];
+    if (links.min15) parts.push(`⏱ 15 min: ${links.min15}`);
+    if (links.min30) parts.push(`⏱ 30 min: ${links.min30}`);
+    if (links.hr1)   parts.push(`⏱ 1 hour: ${links.hr1}`);
+    if (parts.length > 0) {
+      calendarBlock = '\n\nPick a time that works for you:\n' + parts.join('\n');
+    }
+  }
+
   // Build template variables
   const vars: Record<string, string> = {
     firstName: contact.firstName,
@@ -307,7 +320,7 @@ async function generateMessage(
     userFirstName: userProfile?.firstName || '',
     sharedValue: topCommonality?.contactValue || '',
     icebreaker: topCommonality?.suggestedIcebreaker || '',
-    calendarLink: userProfile?.calendarLink || '',
+    calendarBlock,
   };
 
   const draft = fillTemplate(template.body, vars);

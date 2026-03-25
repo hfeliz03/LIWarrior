@@ -15,7 +15,7 @@ export default function Profile() {
     volunteerOrgs: [],
     targetRoles: [],
     targetLevel: '',
-    calendarLink: '',
+    calendarLinks: { min15: '', min30: '', hr1: '' },
   });
   const [saved, setSaved] = useState(false);
 
@@ -66,7 +66,7 @@ export default function Profile() {
         <ArrayField
           label="Universities"
           hint="Comma-separated"
-          value={(profile.universities || []).join(', ')}
+          initialValue={profile.universities || []}
           onChange={(v) => updateArrayField('universities', v)}
           placeholder="e.g., UT Austin, Rice University"
         />
@@ -74,7 +74,7 @@ export default function Profile() {
         <ArrayField
           label="Languages (besides English)"
           hint="Comma-separated"
-          value={(profile.languages || []).join(', ')}
+          initialValue={profile.languages || []}
           onChange={(v) => updateArrayField('languages', v)}
           placeholder="e.g., Spanish, Portuguese"
         />
@@ -82,7 +82,7 @@ export default function Profile() {
         <ArrayField
           label="Current + Past Companies"
           hint="Comma-separated"
-          value={(profile.companies || []).join(', ')}
+          initialValue={profile.companies || []}
           onChange={(v) => updateArrayField('companies', v)}
           placeholder="e.g., Google, Deloitte, Startup XYZ"
         />
@@ -90,7 +90,7 @@ export default function Profile() {
         <ArrayField
           label="Certifications"
           hint="Comma-separated"
-          value={(profile.certifications || []).join(', ')}
+          initialValue={profile.certifications || []}
           onChange={(v) => updateArrayField('certifications', v)}
           placeholder="e.g., AWS Solutions Architect, PMP"
         />
@@ -98,7 +98,7 @@ export default function Profile() {
         <ArrayField
           label="Volunteer Organizations"
           hint="Comma-separated"
-          value={(profile.volunteerOrgs || []).join(', ')}
+          initialValue={profile.volunteerOrgs || []}
           onChange={(v) => updateArrayField('volunteerOrgs', v)}
           placeholder="e.g., Girls Who Code, Habitat for Humanity"
         />
@@ -106,7 +106,7 @@ export default function Profile() {
         <ArrayField
           label="Target Roles"
           hint="Comma-separated"
-          value={(profile.targetRoles || []).join(', ')}
+          initialValue={profile.targetRoles || []}
           onChange={(v) => updateArrayField('targetRoles', v)}
           placeholder="e.g., Software Engineer, Product Manager"
         />
@@ -126,12 +126,42 @@ export default function Profile() {
           </select>
         </div>
 
-        <Field
-          label="Calendar Link (optional)"
-          value={profile.calendarLink || ''}
-          onChange={(v) => updateField('calendarLink', v)}
-          placeholder="e.g., https://calendly.com/your-link"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Scheduling Links (optional)</label>
+          <p className="text-xs text-gray-400 mb-3">Add your Calendly/Cal.com links so contacts can easily pick a time.</p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 w-16 flex-shrink-0">15 min</span>
+              <input
+                type="text"
+                value={profile.calendarLinks?.min15 || ''}
+                onChange={(e) => setProfile(prev => ({ ...prev, calendarLinks: { ...prev.calendarLinks, min15: e.target.value } }))}
+                placeholder="e.g., https://calendly.com/you/15min"
+                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 w-16 flex-shrink-0">30 min</span>
+              <input
+                type="text"
+                value={profile.calendarLinks?.min30 || ''}
+                onChange={(e) => setProfile(prev => ({ ...prev, calendarLinks: { ...prev.calendarLinks, min30: e.target.value } }))}
+                placeholder="e.g., https://calendly.com/you/30min"
+                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 w-16 flex-shrink-0">1 hour</span>
+              <input
+                type="text"
+                value={profile.calendarLinks?.hr1 || ''}
+                onChange={(e) => setProfile(prev => ({ ...prev, calendarLinks: { ...prev.calendarLinks, hr1: e.target.value } }))}
+                placeholder="e.g., https://calendly.com/you/60min"
+                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue"
+              />
+            </div>
+          </div>
+        </div>
 
         <button
           onClick={save}
@@ -161,9 +191,21 @@ function Field({ label, value, onChange, placeholder }: {
   );
 }
 
-function ArrayField({ label, hint, value, onChange, placeholder }: {
-  label: string; hint: string; value: string; onChange: (v: string) => void; placeholder?: string;
+function ArrayField({ label, hint, initialValue, onChange, placeholder }: {
+  label: string; hint: string; initialValue: string[]; onChange: (v: string) => void; placeholder?: string;
 }) {
+  const [localValue, setLocalValue] = useState(initialValue.join(', '));
+
+  // Sync from parent when the parent value changes externally (e.g. on load)
+  useEffect(() => {
+    setLocalValue(initialValue.join(', '));
+  }, [initialValue]);
+
+  const handleBlur = () => {
+    // Only parse into an array on blur so the user can type freely
+    onChange(localValue);
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -171,8 +213,9 @@ function ArrayField({ label, hint, value, onChange, placeholder }: {
       </label>
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
         placeholder={placeholder}
         className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-li-blue"
       />
