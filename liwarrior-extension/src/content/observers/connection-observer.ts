@@ -20,6 +20,35 @@ export function observeConnectionActions(
 ): MutationObserver {
   const reportedConnections = new Set<string>();
 
+  // Create Perma-Debug Hub
+  function ensureDebugHub() {
+    if (document.getElementById('liwarrior-debug-hub')) return;
+    const hub = document.createElement('div');
+    hub.id = 'liwarrior-debug-hub';
+    hub.style.cssText = 'position:fixed;top:80px;right:20px;background:#1a1a2e;color:#00ff00;padding:12px;z-index:99999;font-family:monospace;font-size:11px;border:2px solid #00ff00;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);width:160px;';
+    hub.innerHTML = `
+      <div style="font-weight:bold;margin-bottom:8px;color:white;border-bottom:1px solid #333;">[LIWarrior v2.3]</div>
+      <button id="liwarrior-hub-rescrape" style="margin-bottom:4px;background:#00ff00;color:black;border:none;padding:4px;cursor:pointer;font-size:9px;font-weight:bold;width:100%;">RE-SCRAPE PAGE</button>
+      <button id="liwarrior-hub-diagnostic" style="background:#555;color:white;border:none;padding:4px;cursor:pointer;font-size:9px;width:100%;">DEEP DIAGNOSTIC</button>
+    `;
+    document.body.appendChild(hub);
+
+    document.getElementById('liwarrior-hub-rescrape')?.addEventListener('click', () => {
+      const results = scrape(null);
+      alert(`SCRAPE RESULTS:\nName: ${results.name}\nURL: ${results.url}\nTitle: ${results.meta.title}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\n\nPage Title: ${document.title}`);
+    });
+
+    document.getElementById('liwarrior-hub-diagnostic')?.addEventListener('click', () => {
+      const imgs = Array.from(document.querySelectorAll('img')).map(i => i.className).slice(0, 10).join('\n');
+      const h1s = Array.from(document.querySelectorAll('h1')).map(h => `${h.className} (${h.innerText.slice(0, 10)})`).join('\n');
+      alert(`DIAGNOSTIC:\nImgs Total: ${document.querySelectorAll('img').length}\nH1s Found:\n${h1s || 'NONE'}\n\nFirst 10 Img Classes:\n${imgs}`);
+    });
+  }
+
+  // Inject Hub immediately and on navigation
+  ensureDebugHub();
+  setInterval(ensureDebugHub, 3000);
+
   // Helper: Capitalize first letters of a name and clean degrees
   function capitalizeName(name: string): string {
     if (!name) return '';
