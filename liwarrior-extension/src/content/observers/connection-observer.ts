@@ -48,7 +48,7 @@ export function observeConnectionActions(
           profileUrl: results.url, 
           ...results.meta 
         });
-        alert(`✅ DATA SAVED TO DASHBOARD!\n\nName: ${results.name}\nTitle: ${results.meta.title || 'NONE'}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\n\nCheck your dashboard now!`);
+        alert(`✅ DATA SAVED TO DASHBOARD!\n\nName: ${results.name}\nTitle: ${results.meta.title || 'NONE'}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\nURL: ${results.meta.imageUrl || 'N/A'}\n\nCheck your dashboard now!`);
       } else {
         alert(`❌ FAILED TO SCRAPE\n\nName: ${results.name || 'MISSING'}\nURL: ${results.url || 'MISSING'}`);
       }
@@ -149,9 +149,7 @@ export function observeConnectionActions(
       'img[class*="profile-displayphoto"]',
       'img[class*="EntityPhoto"]',
       // User-discovered obfuscated classes
-      '._4b8f1764', 
-      '.ada1fa5f', 
-      '._888a2d2d',
+      'img[class*="ivm-view-attr__img"]', // New obfuscated class
       'img[class*="actor__avatar"]',
       'img[class*="pv-top-card"]'
     ];
@@ -182,7 +180,9 @@ export function observeConnectionActions(
         }
 
         if (src.includes('media.licdn.com') && (src.includes('profile-displayphoto') || src.includes('profile-displayphoto-shrink'))) {
-           console.log('[LIWarrior v2.6] Found Image via Pattern:', src);
+           // HIGH-RES STRIP: Remove shrink filter
+           src = src.replace(/-shrink_\d+_\d+/, '');
+           console.log('[LIWarrior v2.7] Found High-Res Image:', src);
            meta.imageUrl = src;
            break;
         }

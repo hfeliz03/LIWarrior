@@ -128,7 +128,7 @@ async function handleSearchResults(contacts: Partial<Contact>[]): Promise<void> 
   for (const contact of contacts) {
     // Check if already tracked
     if (contact.profileUrl) {
-      const id = btoa(contact.profileUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+      const id = generateContactId(contact.profileUrl);
       const existing = await db.contacts.get(id);
       if (existing) continue; // Already tracked, skip
     }
@@ -157,7 +157,7 @@ async function handleSearchResults(contacts: Partial<Contact>[]): Promise<void> 
 async function handleProfileScraped(data: Partial<Contact>): Promise<void> {
   if (!data.profileUrl) return;
 
-  const id = btoa(data.profileUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+  const id = generateContactId(data.profileUrl);
   const existing = await db.contacts.get(id);
 
   if (existing) {
