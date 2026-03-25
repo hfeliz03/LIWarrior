@@ -20,10 +20,12 @@ export function observeConnectionActions(
 ): MutationObserver {
   const reportedConnections = new Set<string>();
 
-  // Helper: Capitalize first letters of a name
+  // Helper: Capitalize first letters of a name and clean degrees
   function capitalizeName(name: string): string {
     if (!name) return '';
-    return name.trim().split(/\s+/)
+    // Strip common degrees (MBA, PhD, etc.) if they follow a comma
+    const clean = name.split(',')[0].trim();
+    return clean.split(/\s+/)
       .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
   }
@@ -37,10 +39,12 @@ export function observeConnectionActions(
   function getProfileName(context?: Element | null): string {
     const nameSelectors = [
       'h1.text-heading-xlarge',
+      'h1[class*="top-card-layout__title"]',
       '.entity-result__title-text a span[aria-hidden="true"]',
       '.pv-text-details__left-panel h1',
       '.artdeco-entity-lockup__title',
-      '[data-field="name"]'
+      '[data-field="name"]',
+      'h1'
     ];
     
     for (const selector of nameSelectors) {
@@ -76,13 +80,16 @@ export function observeConnectionActions(
     
     const imgSelectors = [
       '.pv-top-card-profile-picture__image',
+      '.pv-top-card-layout__image img',
+      '.profile-photo-edit__preview',
       '.entity-result__image img',
       '.presence-entity__image img',
       '.ivm-view-attr__img--centered img',
       '.ivm-image-view-model img',
       '.artdeco-entity-lockup__image img',
       '.update-components-actor__avatar img',
-      'img[class*="actor__avatar"]'
+      'img[class*="actor__avatar"]',
+      'img[class*="pv-top-card"]'
     ];
     
     for (const selector of imgSelectors) {
@@ -98,6 +105,7 @@ export function observeConnectionActions(
 
     const titleSelectors = [
       'h1 + .text-body-medium', 
+      'h1 + div + .text-body-medium',
       '.text-body-medium.break-words',
       '.entity-result__primary-subtitle',
       '.artdeco-entity-lockup__subtitle',
@@ -165,9 +173,21 @@ export function observeConnectionActions(
       // On-page debug toast
       const debugToast = document.createElement('div');
       debugToast.style.cssText = 'position:fixed;bottom:100px;left:20px;background:#1a1a2e;color:#00ff00;padding:12px;z-index:99999;font-family:monospace;font-size:11px;border:2px solid #00ff00;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-width:300px;';
-      debugToast.innerHTML = `<b>[LIWarrior v2] SENT!</b><br>Name: ${name}<br>Title: ${metadata?.title?.slice(0, 30) || 'FAIL'}<br>Img: ${metadata?.imageUrl ? 'OK' : 'FAIL'}`;
+      debugToast.innerHTML = `
+        <div style="font-weight:bold;margin-bottom:4px;color:white;">[LIWarrior v2] SENT!</div>
+        Name: ${name}<br>
+        Title: ${metadata?.title?.slice(0, 30) || 'FAIL'}<br>
+        Img: ${metadata?.imageUrl ? 'OK' : 'FAIL'}
+        <button id="liwarrior-rescrape" style="margin-top:8px;background:#00ff00;color:black;border:none;padding:2px 6px;cursor:pointer;font-size:9px;font-weight:bold;width:100%;">RE-SCRAPE PAGE</button>
+      `;
       document.body.appendChild(debugToast);
-      setTimeout(() => debugToast.remove(), 6000);
+      
+      document.getElementById('liwarrior-rescrape')?.addEventListener('click', () => {
+        const results = scrape(null);
+        alert(`SCRAPE RESULTS:\nName: ${results.name}\nURL: ${results.url}\nTitle: ${results.meta.title}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}`);
+      });
+
+      setTimeout(() => debugToast.remove(), 8000);
 
       onConnectionSent({ name, profileUrl, ...metadata });
     }
@@ -250,7 +270,8 @@ export function observeConnectionActions(
               let metadata = pendingConnection?.metadata || current.meta;
 
               if (!name) {
-                const match = node.innerText.match(/sent to (.+?)(?:\.|$)/i);
+                // Better regex to catch "invitation sent to [Name]."
+                const match = node.innerText.match(/(?:invitation|request) sent to (.+?)(?:\.|\!|$)/i);
                 if (match) name = capitalizeName(match[1]);
               }
               if (name && profileUrl) report(name, profileUrl, metadata);
