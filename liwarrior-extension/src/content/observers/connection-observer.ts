@@ -33,8 +33,15 @@ export function observeConnectionActions(
     `;
     document.body.appendChild(hub);
 
-    document.getElementById('liwarrior-hub-rescrape')?.addEventListener('click', () => {
-      const results = scrape(null);
+    document.getElementById('liwarrior-hub-rescrape')?.addEventListener('click', async () => {
+      // Retry a few times in case section is loading (SPA timing)
+      let results = scrape(null);
+      if (!results.meta.imageUrl || !results.meta.title) {
+        console.log('[LIWarrior v2.6] Metadata missing, retrying in 1s...');
+        await new Promise(r => setTimeout(r, 1000));
+        results = scrape(null);
+      }
+
       if (results.name && results.url) {
         onConnectionSent({ 
           name: results.name, 
@@ -162,10 +169,20 @@ export function observeConnectionActions(
 
     // GUERRILLA STRATEGY: Find by source pattern (LinkedIn standard)
     if (!meta.imageUrl && !context) {
-      const allImgs = Array.from(document.querySelectorAll('img'));
-      for (const img of allImgs) {
-        const src = img.src || '';
-        if (src.includes('profile-displayphoto') || src.includes('profile-displayphoto-shrink')) {
+      // Deep scan: look for any element (div/img/span) with a media.licdn.com URL
+      const allElements = Array.from(document.querySelectorAll('img, [style*="url"]'));
+      for (const el of allElements) {
+        let src = '';
+        if (el instanceof HTMLImageElement) {
+          src = el.src || el.getAttribute('data-src') || el.getAttribute('data-delayed-url') || '';
+        } else {
+          const style = window.getComputedStyle(el).backgroundImage;
+          const match = style.match(/url\("?(.+?)"?\)/);
+          if (match) src = match[1];
+        }
+
+        if (src.includes('media.licdn.com') && (src.includes('profile-displayphoto') || src.includes('profile-displayphoto-shrink'))) {
+           console.log('[LIWarrior v2.6] Found Image via Pattern:', src);
            meta.imageUrl = src;
            break;
         }
@@ -204,22 +221,38 @@ export function observeConnectionActions(
       }
     }
 
-    // GUERRILLA STRATEGY: Neighborhood search
+    // GUERRILLA STRATEGY: Neighborhood search + Coordinate Search
     if (!meta.title && !context) {
       const titleName = document.title.split('|')[0].trim();
-      const elements = Array.from(document.querySelectorAll('div, span, p'));
-      for (let i = 0; i < elements.length; i++) {
-        const el = elements[i];
-        if (el.textContent?.includes(titleName.split(' ')[0]) && parseFloat(window.getComputedStyle(el).fontSize) > 20) {
-           // Success! The title is usually 1-3 elements after the name in the DOM
-           for (let j = 1; j <= 5; j++) {
-             const neighbor = elements[i + j];
-             if (neighbor?.textContent?.trim().length > 10 && !neighbor.textContent.includes(titleName.split(' ')[0])) {
-               meta.title = neighbor.textContent.trim();
-               break;
-             }
-           }
+      const elements = Array.from(document.querySelectorAll('div, span, p, h1, h2, h3, h4'));
+      
+      // Find the name element first
+      let nameEl: HTMLElement | null = null;
+      for (const el of elements as HTMLElement[]) {
+        const style = window.getComputedStyle(el);
+        const fontSize = parseFloat(style.fontSize);
+        if (fontSize > 20 && el.textContent?.includes(titleName.split(' ')[0])) {
+           nameEl = el;
            break;
+        }
+      }
+
+      if (nameEl) {
+        // Visual search: What is directly below the name?
+        const rect = nameEl.getBoundingClientRect();
+        const below = document.elementFromPoint(rect.left + 5, rect.bottom + 15) as HTMLElement;
+        if (below?.innerText?.trim().length > 5 && !below.innerText.includes(titleName.split(' ')[0])) {
+           meta.title = below.innerText.trim();
+        } else {
+          // Fallback to neighbor crawl
+          const idx = elements.indexOf(nameEl);
+          for (let j = 1; j <= 10; j++) {
+            const neigh = elements[idx + j];
+            if (neigh?.textContent?.trim().length > 10 && !neigh.textContent.includes(titleName.split(' ')[0])) {
+               meta.title = neigh.textContent.trim();
+               break;
+            }
+          }
         }
       }
     }
