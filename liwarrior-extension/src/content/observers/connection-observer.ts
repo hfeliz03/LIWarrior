@@ -52,6 +52,12 @@ export function observeConnectionActions(
       if (el?.textContent?.trim()) return capitalizeName(el?.textContent?.trim());
     }
 
+    // NEW Fallback: On a profile page, the <title> often has the name "Name | LinkedIn"
+    if (!context && window.location.pathname.startsWith('/in/')) {
+       const title = document.title;
+       if (title && title.includes('|')) return capitalizeName(title.split('|')[0]);
+    }
+
     const ariaEl = context?.querySelector('[aria-label*="Invite"], [aria-label*="View profile"]');
     if (ariaEl) {
       const label = ariaEl.getAttribute('aria-label') || '';
@@ -82,6 +88,7 @@ export function observeConnectionActions(
       '.pv-top-card-profile-picture__image',
       '.pv-top-card-layout__image img',
       '.profile-photo-edit__preview',
+      'img[class*="profile-displayphoto"]',
       '.entity-result__image img',
       '.presence-entity__image img',
       '.ivm-view-attr__img--centered img',
@@ -89,7 +96,8 @@ export function observeConnectionActions(
       '.artdeco-entity-lockup__image img',
       '.update-components-actor__avatar img',
       'img[class*="actor__avatar"]',
-      'img[class*="pv-top-card"]'
+      'img[class*="pv-top-card"]',
+      'img[class*="EntityPhoto"]'
     ];
     
     for (const selector of imgSelectors) {
@@ -179,15 +187,22 @@ export function observeConnectionActions(
         Title: ${metadata?.title?.slice(0, 30) || 'FAIL'}<br>
         Img: ${metadata?.imageUrl ? 'OK' : 'FAIL'}
         <button id="liwarrior-rescrape" style="margin-top:8px;background:#00ff00;color:black;border:none;padding:2px 6px;cursor:pointer;font-size:9px;font-weight:bold;width:100%;">RE-SCRAPE PAGE</button>
+        <button id="liwarrior-diagnostic" style="margin-top:4px;background:#555;color:white;border:none;padding:2px 6px;cursor:pointer;font-size:8px;width:100%;">DEEP DIAGNOSTIC</button>
       `;
       document.body.appendChild(debugToast);
       
       document.getElementById('liwarrior-rescrape')?.addEventListener('click', () => {
         const results = scrape(null);
-        alert(`SCRAPE RESULTS:\nName: ${results.name}\nURL: ${results.url}\nTitle: ${results.meta.title}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}`);
+        alert(`SCRAPE RESULTS:\nName: ${results.name}\nURL: ${results.url}\nTitle: ${results.meta.title}\nImg: ${results.meta.imageUrl ? 'FOUND' : 'MISSING'}\n\nPage Title: ${document.title}`);
       });
 
-      setTimeout(() => debugToast.remove(), 8000);
+      document.getElementById('liwarrior-diagnostic')?.addEventListener('click', () => {
+        const imgs = Array.from(document.querySelectorAll('img')).map(i => i.className).slice(0, 10).join('\n');
+        const h1s = Array.from(document.querySelectorAll('h1')).map(h => h.className).join('\n');
+        alert(`DIAGNOSTIC:\nImgs Found: ${document.querySelectorAll('img').length}\nH1 Classes Found:\n${h1s || 'NONE'}\n\nFirst 10 Img Classes:\n${imgs}`);
+      });
+
+      setTimeout(() => debugToast.remove(), 10000);
 
       onConnectionSent({ name, profileUrl, ...metadata });
     }
