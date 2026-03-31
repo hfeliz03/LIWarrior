@@ -197,9 +197,11 @@ function ArrayField({ label, hint, initialValue, onChange, placeholder }: {
   const [localValue, setLocalValue] = useState(initialValue.join(', '));
 
   // Sync from parent when the parent value changes externally (e.g. on load)
+  // Use JSON.stringify to avoid re-running on every render due to array reference changes
+  const serialized = JSON.stringify(initialValue);
   useEffect(() => {
-    setLocalValue(initialValue.join(', '));
-  }, [initialValue]);
+    setLocalValue(JSON.parse(serialized).join(', '));
+  }, [serialized]);
 
   const handleBlur = () => {
     // Only parse into an array on blur so the user can type freely

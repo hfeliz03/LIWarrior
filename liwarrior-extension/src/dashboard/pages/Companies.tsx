@@ -55,15 +55,21 @@ export default function Companies() {
   );
 
   const getCompanyStats = (companyId: string, companyName: string) => {
-    const query = companyName.toLowerCase();
+    const query = companyName.toLowerCase().trim();
     const companyContacts = contacts.filter((c) => {
       // Priority 1: Direct ID Match (New Relational System)
       if (c.companyId === companyId) return true;
-      
-      // Priority 2: Fuzzy String Match (Legacy/Retroactive)
+
+      // Priority 2: String Match (Legacy/Retroactive) — only exact or near-exact
       const contactCompany = (c.company || '').toLowerCase().trim();
       if (contactCompany.length < 2) return false;
-      return contactCompany.includes(query) || query.includes(contactCompany);
+      // Require exact match or that the shorter string is at least 3 chars
+      // to avoid false positives like "Meta" matching "Metadata Inc"
+      if (contactCompany === query) return true;
+      if (query.length >= 3 && contactCompany.length >= 3) {
+        return contactCompany === query || contactCompany.startsWith(query + ' ') || query.startsWith(contactCompany + ' ');
+      }
+      return false;
     });
     return {
       total: companyContacts.length,

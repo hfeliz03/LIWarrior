@@ -17,9 +17,22 @@ export default function Contacts() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (res) => {
-      if (Array.isArray(res)) setContacts(res);
-    });
+    const fetchData = () => {
+      chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (res) => {
+        if (Array.isArray(res)) setContacts(res);
+      });
+    };
+
+    fetchData();
+
+    // Listen for live updates from service worker
+    const listener = (message: any) => {
+      if (message.type === 'DB_UPDATED') {
+        fetchData();
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
   const filteredContacts = contacts.filter((c) => {
@@ -93,13 +106,7 @@ export default function Contacts() {
             {filteredContacts.map((contact) => (
               <tr key={contact.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 border">
-                    {contact.imageUrl ? (
-                      <img src={contact.imageUrl} className="w-full h-full object-cover" alt="" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">N/A</div>
-                    )}
-                  </div>
+                  <ContactAvatar contact={contact} />
                 </td>
                 <td className="px-4 py-3">
                   <a
@@ -154,6 +161,26 @@ export default function Contacts() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ContactAvatar({ contact }: { contact: Contact }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const initials = contact.firstName?.[0] || contact.fullName?.[0] || '?';
+
+  return (
+    <div className="w-8 h-8 rounded-full overflow-hidden bg-li-blue border flex items-center justify-center">
+      {contact.imageUrl && !imgFailed ? (
+        <img
+          src={contact.imageUrl}
+          className="w-full h-full object-cover"
+          alt=""
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <span className="text-xs font-bold text-white">{initials}</span>
+      )}
     </div>
   );
 }

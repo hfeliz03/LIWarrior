@@ -15,12 +15,25 @@ export default function Pipeline() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (response) => {
-      if (Array.isArray(response)) setContacts(response);
-    });
-    chrome.runtime.sendMessage({ type: 'GET_STATS' }, (response) => {
-      if (response && !response.error) setStats(response);
-    });
+    const fetchData = () => {
+      chrome.runtime.sendMessage({ type: 'GET_CONTACTS' }, (response) => {
+        if (Array.isArray(response)) setContacts(response);
+      });
+      chrome.runtime.sendMessage({ type: 'GET_STATS' }, (response) => {
+        if (response && !response.error) setStats(response);
+      });
+    };
+
+    fetchData();
+
+    // Listen for live updates from service worker
+    const listener = (message: any) => {
+      if (message.type === 'DB_UPDATED') {
+        fetchData();
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
   const contactsByStatus = (status: ContactStatus) =>
@@ -40,7 +53,7 @@ export default function Pipeline() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Networking Pipeline <span className="text-red-500 font-mono text-base">[v2]</span></h2>
+        <h2 className="text-2xl font-bold text-gray-900">Networking Pipeline</h2>
         <p className="text-gray-500 mt-1">
           Track your connections through every stage of the networking process.
         </p>
@@ -49,9 +62,9 @@ export default function Pipeline() {
       {/* Stats bar */}
       {stats && (
         <div className="flex gap-4 mb-6">
-          <div className="bg-red-600 rounded-xl border px-4 py-3 flex-1 text-center shadow-lg transform scale-105">
-            <div className="text-2xl font-bold text-white">{stats.totalContacts}</div>
-            <div className="text-xs text-white">Total Contacts [V2]</div>
+          <div className="bg-white rounded-xl border px-4 py-3 flex-1 text-center">
+            <div className="text-2xl font-bold text-gray-800">{stats.totalContacts}</div>
+            <div className="text-xs text-gray-500">Total Contacts</div>
           </div>
           <div className="bg-white rounded-xl border px-4 py-3 flex-1 text-center">
             <div className="text-2xl font-bold text-green-600">{stats.acceptanceRate}%</div>
@@ -136,6 +149,8 @@ function ContactCard({
   contact: Contact;
   onUpdateStatus: (id: string, status: ContactStatus) => void;
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   const nextStatus: Record<string, ContactStatus | undefined> = {
     discovered: 'request_sent',
     request_sent: undefined, // Acceptance is detected automatically
@@ -146,6 +161,7 @@ function ContactCard({
   };
 
   const next = nextStatus[contact.status];
+  const initials = contact.firstName?.[0] || contact.fullName?.[0] || '?';
 
   const generateDraft = () => {
     chrome.runtime.sendMessage(
@@ -163,28 +179,15 @@ function ContactCard({
     <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-2">
         <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-100 bg-li-blue flex items-center justify-center">
-          {contact.imageUrl ? (
-            <img 
-              src={contact.imageUrl} 
+          {contact.imageUrl && !imgFailed ? (
+            <img
+              src={contact.imageUrl}
               alt={contact.fullName}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                // Show initials parent
-                const parent = target.parentElement;
-                if (parent) {
-                  const span = document.createElement('span');
-                  span.className = "text-xs font-bold text-white";
-                  span.innerText = contact.firstName?.[0] || contact.fullName?.[0] || '?';
-                  parent.appendChild(span);
-                }
-              }}
+              onError={() => setImgFailed(true)}
             />
           ) : (
-            <span className="text-xs font-bold text-white">
-              {contact.firstName?.[0] || contact.fullName?.[0] || '?'}
-            </span>
+            <span className="text-xs font-bold text-white">{initials}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">

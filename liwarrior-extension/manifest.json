@@ -10,8 +10,13 @@
     "sidePanel"
   ],
   "host_permissions": [
-    "https://www.linkedin.com/*"
+    "https://www.linkedin.com/*",
+    "https://media.licdn.com/*",
+    "https://*.licdn.com/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; img-src 'self' https://media.licdn.com https://*.licdn.com data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://media.licdn.com https://*.licdn.com;"
+  },
   "background": {
     "service_worker": "src/background/service-worker.ts",
     "type": "module"

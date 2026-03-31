@@ -72,33 +72,29 @@ export async function getContacts(filter?: {
   status?: string;
   companyId?: string;
 }): Promise<Contact[]> {
-  let collection = db.contacts.toCollection();
+  let results: Contact[];
 
   if (filter?.status && filter?.companyId) {
-    return db.contacts
+    results = await db.contacts
       .where('[status+companyId]')
       .equals([filter.status, filter.companyId])
-      .reverse()
       .sortBy('discoveredAt');
-  }
-
-  if (filter?.status) {
-    return db.contacts
+  } else if (filter?.status) {
+    results = await db.contacts
       .where('status')
       .equals(filter.status)
-      .reverse()
       .sortBy('discoveredAt');
-  }
-
-  if (filter?.companyId) {
-    return db.contacts
+  } else if (filter?.companyId) {
+    results = await db.contacts
       .where('companyId')
       .equals(filter.companyId)
-      .reverse()
       .sortBy('discoveredAt');
+  } else {
+    results = await db.contacts.orderBy('discoveredAt').toArray();
   }
 
-  return db.contacts.reverse().sortBy('discoveredAt');
+  // Sort descending (newest first)
+  return results.reverse();
 }
 
 export function normalizeProfileUrl(url: string): string {
@@ -168,7 +164,8 @@ export async function upsertContact(contact: Partial<Contact>): Promise<string> 
 }
 
 export async function getCompanies(): Promise<TargetCompany[]> {
-  return db.companies.reverse().sortBy('addedAt');
+  const results = await db.companies.orderBy('addedAt').toArray();
+  return results.reverse(); // Newest first
 }
 
 export async function addCompany(company: Partial<TargetCompany>): Promise<string> {
@@ -193,14 +190,16 @@ export async function logActivity(log: Omit<ActivityLog, 'id'>): Promise<void> {
 }
 
 export async function getActivityLog(contactId?: string): Promise<ActivityLog[]> {
+  let results: ActivityLog[];
   if (contactId) {
-    return db.activityLog
+    results = await db.activityLog
       .where('contactId')
       .equals(contactId)
-      .reverse()
       .sortBy('timestamp');
+  } else {
+    results = await db.activityLog.orderBy('timestamp').toArray();
   }
-  return db.activityLog.reverse().sortBy('timestamp');
+  return results.reverse(); // Newest first
 }
 
 export async function getStats() {

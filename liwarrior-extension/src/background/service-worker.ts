@@ -103,6 +103,10 @@ async function handleMessage(message: ExtensionMessage): Promise<unknown> {
     case 'TRACK_CONTACT':
       return upsertContact(message.data);
 
+    case 'RE-SCRAPE-PAGE':
+      // Re-scrape is handled client-side by content scripts; this is a no-op acknowledgement
+      return { success: true };
+
     case 'OPEN_SIDEPANEL':
       // Open side panel in the current window
       if (message.data?.contactId) {
@@ -256,7 +260,7 @@ async function handleConnectionSent(data: {
   console.log('[LIWarrior][SW] Logging activity...');
   await logActivity({
     contactId: id,
-    companyId: '',
+    companyId: companyId,
     action: 'request_sent',
     timestamp: new Date(),
     details: `Connection request sent to ${data.name}`,
@@ -275,9 +279,9 @@ async function handleConnectionAccepted(data: { name: string; profileUrl?: strin
     c => c.fullName.toLowerCase().trim() === nameNorm
   );
 
-  // Also try matching by profile URL
+  // Also try matching by profile URL (using the same ID generation as handleConnectionSent)
   if (!contact && data.profileUrl) {
-    const id = btoa(data.profileUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+    const id = generateContactId(data.profileUrl);
     contact = await db.contacts.get(id) || undefined;
   }
 
